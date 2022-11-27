@@ -230,7 +230,7 @@ public static void OnNativeEvent(int eventID)
 var nativeEventHandler = INativeAction<int>.FromMethod
 (
 	target: null,
-	method: typeof(Program).GetMethod(nameof(OnNativeEvent))!.OnNativeEvent,
+	method: typeof(Program).GetMethod(nameof(OnNativeEvent))!,
 	callingConvention: CallingConvention.Cdecl
 );
 NativeMethods.SetNativeEventCallback(nativeEventHandler.GetFunctionPointer());
