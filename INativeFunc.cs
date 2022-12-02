@@ -5,6 +5,15 @@ using System.Runtime.InteropServices;
 namespace NativeGenericDelegates
 {
     /// <summary>
+    /// Helper class for defining a native generic delegate which lacks explicit marshaling behavior.
+    /// </summary>
+    public static class INativeFunc
+    {
+        /// <inheritdoc cref="INativeAction.NoCustomMarshaling"/>
+        public static readonly MarshalAsAttribute NoCustomMarshaling = INativeAction.NoCustomMarshaling;
+    }
+
+    /// <summary>
     /// Represents a native generic delegate with no parameters and the given return value.
     /// </summary>
     public interface INativeFunc<TResult>
@@ -23,11 +32,19 @@ namespace NativeGenericDelegates
         /// The calling convention of the unmanaged function pointer (see <see
         /// cref="GetFunctionPointer">GetFunctionPointer</see>).
         /// </param>
+        /// <param name="marshalReturnAs">
+        /// Optionally defines the custom marshaling behavior for the new managed delegate's return value. Passing a value of
+        /// <see langword="null"/> here will copy the marshaling behavior for the return value from <paramref name="d"/>.<see
+        /// cref="Delegate.Method">Method</see>. If you want to explicitly specify that the new delegate return value should not
+        /// have any custom marshaling behavior, you may pass <see cref="INativeFunc.NoCustomMarshaling">
+        /// INativeFunc.NoCustomMarshaling</see>.
+        /// </param>
         /// <returns>The new delegate instance.</returns>
-        public static INativeFunc<TResult> FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<TResult>
+            FromDelegate(Delegate d, CallingConvention callingConvention, MarshalAsAttribute? marshalReturnAs = null)
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs);
         }
 
         /// <summary>
@@ -39,11 +56,23 @@ namespace NativeGenericDelegates
         /// <paramref name="method"/> is a <see langword="static"/> method.
         /// </param>
         /// <param name="method">The method that will be invoked by this delegate.</param>
+        /// <param name="marshalReturnAs">
+        /// Optionally defines the custom marshaling behavior for the new managed delegate's return value. Passing a value of
+        /// <see langword="null"/> here will copy the marshaling behavior for the return value from <paramref name="method"/>. If
+        /// you want to explicitly specify that the new delegate return value should not have any custom marshaling behavior, you
+        /// may pass <see cref="INativeFunc.NoCustomMarshaling">INativeFunc.NoCustomMarshaling</see>.
+        /// </param>
         /// <inheritdoc cref="FromDelegate" path="//param[@name='callingConvention']|//returns"/>
-        public static INativeFunc<TResult> FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info = new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method));
             return (INativeFunc<TResult>)DelegateFactory.GetDelegate(info, target, method);
         }
 
@@ -53,7 +82,11 @@ namespace NativeGenericDelegates
         /// </summary>
         /// <param name="functionPtr">The unmanaged function pointer that will be invoked by this delegate.</param>
         /// <inheritdoc cref="FromDelegate" path="//param[@name='callingConvention']|//returns"/>
-        /// <param name="marshalReturnAs"></param>
+        /// <param name="marshalReturnAs">
+        /// Optionally defines the custom marshaling behavior for the new managed delegate's return value. Passing a value of
+        /// <see langword="null"/> or <see cref="INativeFunc.NoCustomMarshaling">INativeFunc.NoCustomMarshaling</see> here will
+        /// result in the new managed delegate return value having no custom marshaling behavior.
+        /// </param>
         public static INativeFunc<TResult> FromFunctionPointer
             (
                 nint functionPtr,
@@ -172,17 +205,59 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{TResult}.FromDelegate"/>
-        public static INativeFunc<T, TResult> FromDelegate(Delegate d, CallingConvention callingConvention)
+        /// <remarks>
+        /// <para>
+        /// By default, the returned delegate will have the same marshaling behavior as the method that the delegate <paramref
+        /// name="d"/> represents. You may pass a non-<see langword="null"/> <paramref name="marshalParamAs"/> array with the
+        /// same length and order as the delegate method's parameters to override the default marshaling behavior.
+        /// </para><para>
+        /// Using a value of <see langword="null"/> in the <paramref name="marshalParamAs"/> array will copy the marshaling
+        /// behavior for that parameter from <paramref name="d"/>.<see cref="Delegate.Method">Method</see>. If you want to
+        /// explicitly specify that the new delegate parameter should not have any custom marshaling behavior, you may pass <see
+        /// cref="INativeFunc.NoCustomMarshaling">INativeFunc.NoCustomMarshaling</see> in the array for the corresponding
+        /// parameter.
+        /// </para>
+        /// </remarks>
+        /// <inheritdoc cref="INativeAction{T}.FromDelegate(Delegate, CallingConvention, MarshalAsAttribute?[]?)"
+        /// path="//param[@name='marshalParamAs']"/>
+        public static INativeFunc<T, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{TResult}.FromMethod"/>
-        public static INativeFunc<T, TResult> FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        /// <remarks>
+        /// <para>
+        /// By default, the returned delegate will have the same marshaling behavior as <paramref name="method"/>'s parameters.
+        /// You may pass a non-<see langword="null"/> <paramref name="marshalParamAs"/> array with the same length and order as
+        /// <paramref name="method"/>'s parameters to override the default marshaling behavior.
+        /// </para><para>
+        /// Using a value of <see langword="null"/> in the <paramref name="marshalParamAs"/> array will copy the marshaling
+        /// behavior for that parameter from <paramref name="method"/>. If you want to explicitly specify that the new delegate
+        /// parameter should not have any custom marshaling behavior, you may pass <see cref="INativeFunc.NoCustomMarshaling">
+        /// INativeFunc.NoCustomMarshaling</see> in the array for the corresponding parameter.
+        /// </para>
+        /// </remarks>
+        /// <inheritdoc cref="FromDelegate" path="//param[@name='marshalReturnAs']|//param[@name='marshalParamAs']"/>
+        public static INativeFunc<T, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T, TResult>)DelegateFactory.GetDelegate(info, target, method);
         }
 
@@ -313,19 +388,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, TResult>)DelegateFactory.GetDelegate(info, target, method);
         }
 
@@ -454,19 +541,24 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
         public static INativeFunc<T1, T2, T3, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention, MarshalAsAttribute? marshalReturnAs = null, MarshalAsAttribute?[]? marshalParamAs = null)
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info = new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, TResult>)DelegateFactory.GetDelegate(info, target, method);
         }
 
@@ -595,19 +687,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, TResult>)DelegateFactory.GetDelegate(info, target, method);
         }
 
@@ -736,19 +840,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, TResult>)DelegateFactory.GetDelegate(info, target, method);
         }
 
@@ -878,19 +994,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, T6, TResult>)DelegateFactory.GetDelegate(info, target, method);
         }
 
@@ -1021,19 +1149,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, T6, T7, TResult>)DelegateFactory.GetDelegate(info, target, method);
         }
 
@@ -1164,19 +1304,30 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info = new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, TResult>)DelegateFactory.GetDelegate(info, target, method);
         }
 
@@ -1307,19 +1458,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>)DelegateFactory.GetDelegate(info, target, method);
         }
 
@@ -1450,19 +1613,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>)
                 DelegateFactory.GetDelegate(info, target, method);
         }
@@ -1602,19 +1777,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>)
                 DelegateFactory.GetDelegate(info, target, method);
         }
@@ -1755,19 +1942,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>)
                 DelegateFactory.GetDelegate(info, target, method);
         }
@@ -1907,19 +2106,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>)
                 DelegateFactory.GetDelegate(info, target, method);
         }
@@ -2059,19 +2270,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>)
                 DelegateFactory.GetDelegate(info, target, method);
         }
@@ -2220,19 +2443,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>)
                 DelegateFactory.GetDelegate(info, target, method);
         }
@@ -2385,19 +2620,31 @@ namespace NativeGenericDelegates
         public object? Target => ((Delegate)this).Target;
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromDelegate"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>
-            FromDelegate(Delegate d, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> FromDelegate
+            (
+                Delegate d,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(d);
-            return FromMethod(d.Target, d.Method, callingConvention);
+            return FromMethod(d.Target, d.Method, callingConvention, marshalReturnAs, marshalParamAs);
         }
 
         /// <inheritdoc cref="INativeFunc{T, TResult}.FromMethod"/>
-        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>
-            FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+        public static INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult> FromMethod
+            (
+                object? target,
+                MethodInfo method,
+                CallingConvention callingConvention,
+                MarshalAsAttribute? marshalReturnAs = null,
+                MarshalAsAttribute?[]? marshalParamAs = null
+            )
         {
             ArgumentNullException.ThrowIfNull(method);
-            NativeGenericDelegateInfo info = new(new(method.ReturnParameter), callingConvention, new(method));
+            NativeGenericDelegateInfo info =
+                new(new(method.ReturnParameter, marshalReturnAs), callingConvention, new(method, marshalParamAs));
             return (INativeFunc<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>)
                 DelegateFactory.GetDelegate(info, target, method);
         }

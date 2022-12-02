@@ -81,10 +81,38 @@ INativeAction<int>? maybeAction = d as INativeAction<int>;
 INativeAction<int> invalidCastExceptionIfWrong = (INativeAction<int>)d;
 ```
 
+#### Custom marshaling
+
+The methods below permit you to specify custom marshaling behavior for the
+native generic delegates that you create. The default behavior when
+constructing these delegates using [FromDelegate](#fromdelegate) or
+[FromMethod](#frommethod) is to copy the marshaling behavior from the method.
+In those method's `marshalReturnAs` and `marshalParamAs` parameters, a `null`
+value will be used to represent this default behavior. If you explicitly want
+the delegate to have no custom marshaling behavior defined, you may use either
+`INativeAction.NoCustomMarshaling` or `INativeFunc.NoCustomMarshaling`.
+
+```C#
+static MarshalAsAttribute INativeAction.NoCustomMarshaling
+static MarshalAsAttribute INativeFunc.NoCustomMarshaling
+```
+
+(_NOTE: `INativeFunc` is a `static` class to mirror `INativeAction` when
+accessing this property, which is only accessible through this base interface.
+The two references are equivalent._)
+
+This does __not__ turn off custom marshaling of the underlying methods that
+your native generic delegates will represent. This only affects the marshaling
+behavior defined for the delegate type itself.
+
+When using [FromFunctionPointer](#fromfunctionpointer), values of `null` and
+`NoCustomMarshaling` are the same, as there is no managed method to copy
+marshaling behaviors from.
+
 #### FromDelegate
 ```C#
-static INativeAction<T..16> INativeAction<T..16>.FromDelegate(Delegate d, CallingConvention callingConvention)
-static INativeFunc<T..16, TResult> INativeFunc<T..16, TResult>.FromDelegate(Delegate d, CallingConvention callingConvention)
+static INativeAction<T..16> INativeAction<T..16>.FromDelegate(Delegate d, CallingConvention callingConvention, [optional] MarshalAsAttribute?[]? marshalParamAs)
+static INativeFunc<T..16, TResult> INativeFunc<T..16, TResult>.FromDelegate(Delegate d, CallingConvention callingConvention, [optional] MarshalAsAttribute? marshalReturnAs, [optional] MarshalAsAttribute?[]? marshalParamAs)
 ```
 
 Creates a native generic delegate with the same signature as the interface that
@@ -97,6 +125,28 @@ parameters and return value of `d.Method`.
 
 `callingConvention` is the calling convention of the unmanaged function pointer
 returned by [GetFunctionPointer](#getfunctionpointer).
+
+`marshalReturnAs` is an optional `MarshalAsAttribute` that controls the
+marshaling behavior of the managed delegate return value, if any.
+`INativeAction<T..16>` omits this parameter as there is no return value. If
+this parameter is `null`, the marshaling behavior for the new delegate's return
+value will be copied from the marshaling of the managed method (`d.Method`;
+**this is the default**). To specify that the new delegate should have no
+explicit marshaling, you may pass [NoCustomMarshaling](#custom-marshaling). Any
+custom marshaling of the underlying method's return value will still be
+preserved, but not represented in the new delegate type.
+
+`marshalParamAs` is an optional array of `MarshalAsAttribute`s that control the
+marshaling behavior of the managed delegate parameters. Delegates that accept
+no parameters (`INativeAction` and `INativeFunc<TResult>`) omit this parameter.
+The length and order of the array must match the function signature. If this
+parameter is `null`, the marshaling behavior for the new delegate's parameters
+will be copied from the marshaling of the managed method's (`d.Method`'s)
+parameters (**this is the default**). To specify that a parameter in the new
+delegate type should have no explicit marshaling, you may pass
+[NoCustomMarshaling](#custom-marshaling). Any custom marshaling of the
+underlying method's parameters will still be preserved, but not represented in
+the new delegate type.
 
 _Returns:_ The new delegate instance.
 
@@ -199,8 +249,8 @@ _See also:_
 
 #### FromMethod
 ```C#
-static INativeAction<T..16> INativeAction<T..16>.FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
-static INativeFunc<T..16> INativeFunc<T..16>.FromMethod(object? target, MethodInfo method, CallingConvention callingConvention)
+static INativeAction<T..16> INativeAction<T..16>.FromMethod(object? target, MethodInfo method, CallingConvention callingConvention, [optional] MarshalAsAttribute?[]? marshalParamAs)
+static INativeFunc<T..16> INativeFunc<T..16>.FromMethod(object? target, MethodInfo method, CallingConvention callingConvention, [optional] MarshalAsAttribute? marshalReturnAs, [optional] MarshalAsAttribute?[]? marshalParamAs)
 ```
 
 Creates a native generic delegate with the same signature as the interface that
@@ -216,6 +266,28 @@ parameters and return value of `method`.
 
 `callingConvention` is the calling convention of the unmanaged function pointer
 returned by [GetFunctionPointer](#getfunctionpointer).
+
+`marshalReturnAs` is an optional `MarshalAsAttribute` that controls the
+marshaling behavior of the managed delegate return value, if any.
+`INativeAction<T..16>` omits this parameter as there is no return value. If
+this parameter is `null`, the marshaling behavior for the new delegate's return
+value will be copied from the marshaling of the managed `method` (**this is the
+default**). To specify that the new delegate should have no explicit
+marshaling, you may pass [NoCustomMarshaling](#custom-marshaling). Any custom
+marshaling of the underlying method's return value will still be preserved, but
+not represented in the new delegate type.
+
+`marshalParamAs` is an optional array of `MarshalAsAttribute`s that control the
+marshaling behavior of the managed delegate parameters. Delegates that accept
+no parameters (`INativeAction` and `INativeFunc<TResult>`) omit this parameter.
+The length and order of the array must match the function signature. If this
+parameter is `null`, the marshaling behavior for the new delegate's parameters
+will be copied from the marshaling of the managed `method`'s parameters (**this
+is the default**). To specify that a parameter in the new delegate type should
+have no explicit marshaling, you may pass
+[NoCustomMarshaling](#custom-marshaling). Any custom marshaling of the
+underlying method's parameters will still be preserved, but not represented in
+the new delegate type.
 
 _Returns:_ The new delegate instance.
 

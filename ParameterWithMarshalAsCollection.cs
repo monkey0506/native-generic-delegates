@@ -210,6 +210,8 @@ namespace NativeGenericDelegates
         /// Creates a collection from the given method.
         /// </summary>
         /// <param name="method">The method to copy the signature and marshaling behavior from.</param>
+        /// <inheritdoc cref="INativeAction.FromFunctionPointer(nint, CallingConvention)"
+        /// path="//param[@name='marshalParamAs']"/>
         public ParameterWithMarshalAsCollection(MethodInfo method, MarshalAsAttribute?[]? marshalParamAs = null)
         {
             ArgumentNullException.ThrowIfNull(method);
@@ -217,8 +219,7 @@ namespace NativeGenericDelegates
             parameters = parameterInfos.Length != 0 ?
                 new ParameterWithMarshalAs[parameterInfos.Length] :
                 Array.Empty<ParameterWithMarshalAs>();
-            bool overrideMarshaling = marshalParamAs is not null;
-            if (overrideMarshaling && (marshalParamAs!.Length != parameters.Length))
+            if (marshalParamAs?.Length != parameters.Length)
             {
                 throw new ArgumentException
                     (
@@ -228,13 +229,7 @@ namespace NativeGenericDelegates
             }
             for (int i = 0; i < parameterInfos.Length; ++i)
             {
-                parameters[i] = new
-                    (
-                        parameterInfos[i].ParameterType,
-                        overrideMarshaling ?
-                            marshalParamAs![i] :
-                            (MarshalAsAttribute?)parameterInfos[i].GetCustomAttribute(typeof(MarshalAsAttribute))
-                    );
+                parameters[i] = new(parameterInfos[i], marshalParamAs?[i]);
             }
         }
 
@@ -242,6 +237,8 @@ namespace NativeGenericDelegates
         /// Creates a collection from the given delegate's method.
         /// </summary>
         /// <param name="d">The delegate to copy the method signature and marshaling behavior from.</param>
+        /// <inheritdoc cref="ParameterWithMarshalAsCollection(MethodInfo, MarshalAsAttribute?[]?)"
+        /// path="//param[@name='marshalParamAs']"/>
         public ParameterWithMarshalAsCollection(Delegate d, MarshalAsAttribute?[]? marshalParamAs = null) :
             this(d?.Method!, marshalParamAs)
         { }
