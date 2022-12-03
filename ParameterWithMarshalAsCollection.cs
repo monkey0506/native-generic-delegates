@@ -219,7 +219,7 @@ namespace NativeGenericDelegates
             parameters = parameterInfos.Length != 0 ?
                 new ParameterWithMarshalAs[parameterInfos.Length] :
                 Array.Empty<ParameterWithMarshalAs>();
-            if (marshalParamAs?.Length != parameters.Length)
+            if ((marshalParamAs?.Length ?? 0) != parameters.Length)
             {
                 throw new ArgumentException
                     (
