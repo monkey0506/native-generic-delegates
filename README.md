@@ -19,6 +19,10 @@ every project, particularly if you are only using a small number of delegates.
 
 ## What this project does
 
+__IMPORTANT NOTE: This project relies on dynamic code using types from the
+[System.Reflection.Emit](https://learn.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/emitting-dynamic-methods-and-assemblies)
+namespace. These types are not supported on all .NET platforms.__
+
 This project provides a set of `interface`s that mirror the `System.Action` and
 `System.Func` delegate types with the following features:
 
