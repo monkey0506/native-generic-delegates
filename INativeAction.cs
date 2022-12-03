@@ -142,7 +142,7 @@ namespace NativeGenericDelegates
     /// <summary>
     /// Represents a native generic delegate with the given parameter types and no return value.
     /// </summary>
-    public interface INativeAction<T>
+    public interface INativeAction<in T>
     {
         /// <inheritdoc cref="INativeAction.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -311,7 +311,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2>
+    public interface INativeAction<in T1, in T2>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -449,7 +449,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3>
+    public interface INativeAction<in T1, in T2, in T3>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -587,7 +587,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4>
+    public interface INativeAction<in T1, in T2, in T3, in T4>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -725,7 +725,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5>
+    public interface INativeAction<in T1, in T2, in T3, in T4, in T5>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -863,7 +863,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5, T6>
+    public interface INativeAction<in T1, in T2, in T3, in T4, in T5, in T6>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -1002,7 +1002,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5, T6, T7>
+    public interface INativeAction<in T1, in T2, in T3, in T4, in T5, in T6, in T7>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -1141,7 +1141,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5, T6, T7, T8>
+    public interface INativeAction<in T1, in T2, in T3, in T4, in T5, in T6, in T7, in T8>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -1280,7 +1280,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9>
+    public interface INativeAction<in T1, in T2, in T3, in T4, in T5, in T6, in T7, in T8, in T9>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -1419,7 +1419,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
+    public interface INativeAction<in T1, in T2, in T3, in T4, in T5, in T6, in T7, in T8, in T9, in T10>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -1566,7 +1566,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
+    public interface INativeAction<in T1, in T2, in T3, in T4, in T5, in T6, in T7, in T8, in T9, in T10, in T11>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -1714,7 +1714,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
+    public interface INativeAction<in T1, in T2, in T3, in T4, in T5, in T6, in T7, in T8, in T9, in T10, in T11, in T12>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -1863,7 +1863,7 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
+    public interface INativeAction<in T1, in T2, in T3, in T4, in T5, in T6, in T7, in T8, in T9, in T10, in T11, in T12, in T13>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -2012,7 +2012,8 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>
+    public interface
+        INativeAction<in T1, in T2, in T3, in T4, in T5, in T6, in T7, in T8, in T9, in T10, in T11, in T12, in T13, in T14>
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -2167,7 +2168,10 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>
+    public interface INativeAction
+        <
+            in T1, in T2, in T3, in T4, in T5, in T6, in T7, in T8, in T9, in T10, in T11, in T12, in T13, in T14, in T15
+        >
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
@@ -2324,7 +2328,10 @@ namespace NativeGenericDelegates
     }
 
     /// <inheritdoc cref="INativeAction{T}"/>
-    public interface INativeAction<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>
+    public interface INativeAction
+        <
+            in T1, in T2, in T3, in T4, in T5, in T6, in T7, in T8, in T9, in T10, in T11, in T12, in T13, in T14, in T15, in T16
+        >
     {
         /// <inheritdoc cref="INativeAction{T}.Method"/>
         public MethodInfo Method => ((Delegate)this).Method;
