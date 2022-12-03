@@ -53,17 +53,17 @@ There are 17 variations each of the `INativeAction` and `INativeFunc`
 interfaces that mirror `System.Action` and `System.Func` respectively.
 Similarly, `INativeAction` represents a method with no return value (`void`
 return type) and `INativeFunc` takes the return type as the final generic
-type parameter (`TResult`). For brevity, the shorthand `<T..16>` will be used
-to denote all 17 variations of the interface.
+type parameter (`TResult`). For brevity, the shorthand `<T..16>`/`<T..16,
+TResult>` will be used to denote all 17 variations of the interface.
 
 #### Converting to and from Delegate
 
-Every instance of `INativeAction<T..16>` and `INativeFunc<T..16>` that is
-exposed by the methods and properties below are *actual* instances of a `class`
-that is derived from `System.MulticastDelegate` (which in turn is derived from
-`System.Delegate`). Any APIs using these base classes can accept
+Every instance of `INativeAction<T..16>` and `INativeFunc<T..16, TResult>` that
+is exposed by the methods and properties below are *actual* instances of a
+`class` that is derived from `System.MulticastDelegate` (which in turn is
+derived from `System.Delegate`). Any APIs using these base classes can accept
 `INativeAction` or `INativeFunc` instances, but this requires an explicit cast
-(as implicit conversions to or from `interface`s ae forbidden):
+(as implicit conversions to or from `interface`s are forbidden):
 
 ```C#
 private void Foo(int i) { }
@@ -73,8 +73,8 @@ var foo = INativeAction<int>.FromDelegate(Foo, CallingConvention.Cdecl);
 Bar((Delegate)foo);
 ```
 
-The conversion in the other direction can also be done with an explicit cast or
-using the `is` or `as` operators:
+The conversion in the other direction can also be done with an explicit cast,
+and conversions in both directions can use the `is` or `as` operators:
 
 ```C#
 if (d is INativeAction<int> action)
@@ -102,8 +102,9 @@ static MarshalAsAttribute INativeFunc.NoCustomMarshaling
 ```
 
 (_NOTE: `INativeFunc` is a `static` class to mirror `INativeAction` when
-accessing this property, which is only accessible through this base interface.
-The two references are equivalent._)
+accessing this property, which is only accessible through the parameterless
+`INativeAction` interface or the static `INativeFunc` class. The two references
+are equivalent._)
 
 This does __not__ turn off custom marshaling of the underlying methods that
 your native generic delegates will represent. This only affects the marshaling
@@ -121,9 +122,6 @@ static INativeFunc<T..16, TResult> INativeFunc<T..16, TResult>.FromDelegate(Dele
 
 Creates a native generic delegate with the same signature as the interface that
 will invoke the same method (and target, if any) as the given delegate `d`.
-
-Marshaling behavior matches any `MarshalAsAttribute`s that are applied to the
-parameters and return value of `d.Method`.
 
 `d` is the delegate from which the invocation method and target will be copied.
 
@@ -186,7 +184,7 @@ static INativeFunc<TResult> INativeFunc<TResult>.FromFunctionPointer(nint functi
 static INativeFunc<T..16, TResult> INativeFunc<T..16, TResult>.FromFunctionPointer(nint functionPtr, CallingConvention callingConvention, [optional] MarshalAsAttribute? marshalReturnAs, [optional] MarshalAsAttribute?[]? marshalParamAs)
 static unsafe INativeFunc<TResult> INativeFunc<TResult>.FromFunctionPointer(delegate* unmanaged[CALL_CONV]<TResult> functionPtr, [optional] MarshalAsAttribute? marshalReturnAs)
 static unsafe INativeFunc<T..16, TResult> INativeFunc<T..16, TResult>.FromFunctionPointer(delegate* unmanaged[CALL_CONV]<T..16, TResult> functionPtr, [optional] MarshalAsAttribute? marshalReturnAs, [optional] MarshalAsAttribute?[]? marshalParamAs)
-static unsafe INativeFunc<T..16, TResult> INativeFunc<T..16, TResult>.FromFunctionPointer<U..16>(delegate* unmanaged[CALL_CONV]<U..16, UResult> functionPtr, [optional] MarshalAsAttribute? marshalReturnAs, [optional] MarshalAsAttribute?[]? marshalParamAs)
+static unsafe INativeFunc<T..16, TResult> INativeFunc<T..16, TResult>.FromFunctionPointer<U..16, UResult>(delegate* unmanaged[CALL_CONV]<U..16, UResult> functionPtr, [optional] MarshalAsAttribute? marshalReturnAs, [optional] MarshalAsAttribute?[]? marshalParamAs)
 ```
 
 *Methods indicated as `unsafe` require the `/unsafe` compiler switch.*
@@ -198,9 +196,10 @@ will invoke an unmanaged function pointer.
 
 The overloads that accept type parameters for the unmanaged function pointer
 `<U..16>`/`<U..16, UResult>` permit you to change the managed delegate
-parameter types from the native function's parameter types. If you do change
-any of the parameter types, you must use `marshalParamAs` to define the correct
-marshaling behavior.
+parameter types from the native function's parameter types (`<T..16>`/`<T..T16,
+TResult>` refers to the __managed__ types and `<U..16>`/`<U..16, UResult>`
+refers to the __unmanaged__ types). If you do change any of the parameter
+types, you must use `marshalParamAs` to define the correct marshaling behavior.
 
 `functionPtr` is the unmanaged function pointer that will be invoked by the
 delegate.
@@ -254,7 +253,7 @@ _See also:_
 #### FromMethod
 ```C#
 static INativeAction<T..16> INativeAction<T..16>.FromMethod(object? target, MethodInfo method, CallingConvention callingConvention, [optional] MarshalAsAttribute?[]? marshalParamAs)
-static INativeFunc<T..16> INativeFunc<T..16>.FromMethod(object? target, MethodInfo method, CallingConvention callingConvention, [optional] MarshalAsAttribute? marshalReturnAs, [optional] MarshalAsAttribute?[]? marshalParamAs)
+static INativeFunc<T..16, TResult> INativeFunc<T..16, TResult>.FromMethod(object? target, MethodInfo method, CallingConvention callingConvention, [optional] MarshalAsAttribute? marshalReturnAs, [optional] MarshalAsAttribute?[]? marshalParamAs)
 ```
 
 Creates a native generic delegate with the same signature as the interface that
@@ -323,7 +322,7 @@ _See also:_
 #### GetFunctionPointer
 ```C#
 nint INativeAction<T..16>.GetFunctionPointer()
-nint INativeFunc<T..16>.GetFunctionPointer()
+nint INativeFunc<T..16, TResult>.GetFunctionPointer()
 ```
 
 Converts the delegate into a function pointer that is callable from unmanaged
@@ -365,7 +364,7 @@ _Note:_ This does __not__ call `Delegate.DynamicInvoke` and does not incur the
 performance penalty associated with that method.
 
 _Returns:_ Nothing (`INativeAction<T..16>`) or `TResult`
-(`INativeFunc<T..16>`).
+(`INativeFunc<T..16, TResult>`).
 
 _Example:_
 
@@ -479,8 +478,8 @@ The "magic" behind the scenes here is that we use types from
 runtime are permitted to do so. This emitted class is then also permitted to
 permitted to implement an `interface` (while compile-time delegates cannot).
 
-In the `INativeAction<T..16>` and `INativeFunc<T..16>` interfaces, the only
-member that does __not__ have a default implementation (and thus must be
+In the `INativeAction<T..16>` and `INativeFunc<T..16, TResult>` interfaces, the
+only member that does __not__ have a default implementation (and thus must be
 implemented by the class) is the `Invoke` method. Because the runtime class
 type we define has this method, we can cast our runtime `Delegate`-derived
 class to and from the interface that it implements.
