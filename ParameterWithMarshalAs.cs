@@ -53,9 +53,7 @@ namespace NativeGenericDelegates
                 // If `marshalAs` is `null`, we read marshaling behavior (if any) from the parameter, otherwise just forward it
                 // to the `Type`-based constructor. The user must explicitly pass `INativeAction.NoCustomMarshaling` or
                 // `INativeFunc.NoCustomMarshaling` if they do not want to inherit the marshaling behavior from the parameter.
-                marshalAs is null ?
-                    (MarshalAsAttribute?)parameterInfo.GetCustomAttribute(typeof(MarshalAsAttribute)) :
-                    marshalAs
+                marshalAs is null ? parameterInfo.GetCustomAttribute<MarshalAsAttribute>() : marshalAs
             )
         { }
 
