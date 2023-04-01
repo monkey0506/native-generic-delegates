@@ -12,7 +12,7 @@
 //
 // v1.0.0 of this project aimed to provide dynamically instanciated Delegate
 // objects that implemented one of the provided interfaces, but relied on
-// classes from System.Runtime.Emit, which is incompatible with some .NET
+// classes from System.Reflection.Emit, which is incompatible with some .NET
 // platforms (those using AOT compilation).
 //
 // This version instead aims to create classes that implement the provided
