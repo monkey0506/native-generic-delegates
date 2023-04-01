@@ -1,7 +1,7 @@
 ﻿# NativeGenericDelegates
 **NativeGenericDelegates**<br/>
 <https://github.com/monkey0506/native-generic-delegates><br/>
-Copyright (C) 2022 Michael Rittenhouse <monkey0506@gmail.com>
+Copyright (C) 2022-2023 Michael Rittenhouse <monkey0506@gmail.com>
 
 
 
