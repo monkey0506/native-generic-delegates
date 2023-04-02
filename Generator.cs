@@ -741,36 +741,18 @@ namespace NativeGenericDelegatesGenerator
                     {
                         continue;
                     }
-                    bool _continue = false;
                     if (methodSymbol.IsGenericMethod)
                     {
                         if (methodSymbol.TypeArguments.Length != interfaceSymbol.TypeArguments.Length)
                         {
                             continue;
                         }
-                        foreach (var typeArgument in methodSymbol.TypeArguments)
-                        {
-                            if ((typeArgument is not INamedTypeSymbol namedTypeArgument) || namedTypeArgument.IsGenericType)
-                            {
-                                _continue = true;
-                                break;
-                            }
-                        }
-                        if (_continue)
+                        if (methodSymbol.TypeArguments.Where(x => x is not INamedTypeSymbol namedTypeArgument || namedTypeArgument.IsGenericType).Any())
                         {
                             continue;
                         }
                     }
-                    _continue = false;
-                    foreach (var typeArgument in interfaceSymbol.TypeArguments)
-                    {
-                        if ((typeArgument is not INamedTypeSymbol namedTypeArgument) || namedTypeArgument.IsGenericType)
-                        {
-                            _continue = true;
-                            break;
-                        }
-                    }
-                    if (_continue)
+                    if (interfaceSymbol.TypeArguments.Where(x => x is not INamedTypeSymbol namedTypeArgument || namedTypeArgument.IsGenericType).Any())
                     {
                         continue;
                     }
