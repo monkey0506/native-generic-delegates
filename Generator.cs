@@ -385,7 +385,7 @@ namespace NativeGenericDelegatesGenerator
                 INamedTypeSymbol interfaceSymbol = methodSymbol.ContainingType;
                 bool isAction = interfaceSymbol.Name.StartsWith(INativeActionIdentifier);
                 string identifier = isAction ? ActionIdentifier : FuncIdentifier;
-                IEnumerable<int> range = Enumerable.Range(1, interfaceSymbol.TypeArguments.Length);
+                IEnumerable<int> range = Enumerable.Range(1, interfaceSymbol.Arity);
                 ImmutableArray<string> typeArguments = interfaceSymbol.TypeArguments.Select(x => x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)).ToImmutableArray();
                 ImmutableArray<string> typeParameters = interfaceSymbol.TypeParameters.Select(x => x.ToString()).ToImmutableArray();
                 cancellationToken.ThrowIfCancellationRequested();
@@ -405,11 +405,11 @@ namespace NativeGenericDelegatesGenerator
                 UnmanagedTypeArgumentsOnly = interfaceSymbol.TypeArguments.All(x => x.IsUnmanagedType);
                 cancellationToken.ThrowIfCancellationRequested();
                 StringBuilder sb = new();
-                bool wrap = interfaceSymbol.TypeArguments.Length > 1;
-                for (int i = 0; i < interfaceSymbol.TypeArguments.Length; ++i)
+                bool wrap = interfaceSymbol.Arity > 1;
+                for (int i = 0; i < interfaceSymbol.Arity; ++i)
                 {
                     _ = sb.Append($"{(wrap ? "(" : "")}typeof({typeParameters[i]}) == typeof({typeArguments[i]}){(wrap ? ")" : "")}");
-                    if ((i + 1) < interfaceSymbol.TypeArguments.Length)
+                    if ((i + 1) < interfaceSymbol.Arity)
                     {
                         _ = sb.Append(" && ");
                     }
@@ -736,14 +736,14 @@ namespace NativeGenericDelegatesGenerator
                     // this may be overkill (and there may be a simpler way to validate this as one of the interfaces we define), but this should cover any erroneous matches
                     if ((interfaceSymbol is null) || (interfaceSymbol.ContainingNamespace is null) || (interfaceSymbol.ContainingNamespace.ContainingNamespace is null) ||
                         (!interfaceSymbol.ContainingNamespace.ContainingNamespace.IsGlobalNamespace) || (interfaceSymbol.ContainingNamespace.Name != RootNamespace) ||
-                        (interfaceSymbol.TypeKind != TypeKind.Interface) || !interfaceSymbol.IsGenericType || (interfaceSymbol.TypeArguments.Length == 0) ||
+                        (interfaceSymbol.TypeKind != TypeKind.Interface) || !interfaceSymbol.IsGenericType || (interfaceSymbol.Arity == 0) ||
                         ((interfaceSymbol.Name != INativeActionIdentifier) && (interfaceSymbol.Name != INativeFuncIdentifier)))
                     {
                         continue;
                     }
                     if (methodSymbol.IsGenericMethod)
                     {
-                        if (methodSymbol.TypeArguments.Length != interfaceSymbol.TypeArguments.Length)
+                        if (methodSymbol.Arity != interfaceSymbol.Arity)
                         {
                             continue;
                         }
