@@ -23,10 +23,13 @@
 // marshalling at this time.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -61,6 +64,13 @@ namespace NativeGenericDelegatesGenerator
 
         private const string DeclarationsSourceFileName = RootNamespace + ".Declarations.g.cs";
         private const string SourceFileName = RootNamespace + ".g.cs";
+
+        private const string MarshalAsArgumentMustUseObjectCreationSyntaxID = "NGD1001";
+        private static readonly DiagnosticDescriptor MarshalAsArgumentMustUseObjectCreationSyntaxDescriptor =
+            new(MarshalAsArgumentMustUseObjectCreationSyntaxID, "Invalid MarshalAs argument", "MarshalAs argument must be null or use object creation syntax", "Usage", DiagnosticSeverity.Error, true);
+        private const string InvalidMarshalParamsAsArrayLengthID = "NGD1002";
+        private static readonly DiagnosticDescriptor InvalidMarshalParamsAsArrayLengthDescriptor =
+            new(InvalidMarshalParamsAsArrayLengthID, $"Invalid marshalParamsAs argument", $"marshalParamsAs argument must be array of correct length", "Usage", DiagnosticSeverity.Error, true);
 
         private static readonly string[] GenericActionTypeParameters = new[]
         {
@@ -362,6 +372,74 @@ namespace NativeGenericDelegatesGenerator
             where UResult : unmanaged",
         };
 
+        private readonly struct MethodSymbolWithContext
+        {
+            public readonly GeneratorSyntaxContext Context;
+            public readonly bool IsAction;
+            public readonly IMethodSymbol MethodSymbol;
+
+            public MethodSymbolWithContext(IMethodSymbol methodSymbol, GeneratorSyntaxContext context, bool isAction)
+            {
+                Context = context;
+                IsAction = isAction;
+                MethodSymbol = methodSymbol;
+            }
+        }
+
+        private readonly struct MethodSymbolWithMarshalInfo : IEquatable<MethodSymbolWithMarshalInfo>
+        {
+            public readonly ImmutableArray<string?>? MarshalParamsAs;
+            public readonly string? MarshalReturnAs;
+            public readonly IMethodSymbol MethodSymbol;
+
+            public MethodSymbolWithMarshalInfo(IMethodSymbol methodSymbol, string? marshalReturnAs, ImmutableArray<string?>? marshalParamsAs)
+            {
+                MarshalParamsAs = marshalParamsAs;
+                MarshalReturnAs = marshalReturnAs;
+                MethodSymbol = methodSymbol;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is MethodSymbolWithMarshalInfo other && Equals(other);
+            }
+
+            public bool Equals(MethodSymbolWithMarshalInfo other)
+            {
+                return GetHashCode() == other.GetHashCode();
+            }
+
+            public override int GetHashCode()
+            {
+                int hash = 1009;
+                int factor = 9176;
+                foreach (string? s in MarshalParamsAs ?? ImmutableArray<string?>.Empty)
+                {
+                    hash = (hash * factor) + (s ?? "").GetHashCode();
+                }
+                hash = (hash * factor) + (MarshalReturnAs ?? "").GetHashCode();
+                hash = (hash * factor) + SymbolEqualityComparer.Default.GetHashCode(MethodSymbol.IsGenericMethod ? MethodSymbol : MethodSymbol.ContainingType);
+                return hash;
+            }
+        }
+
+        private readonly struct MethodSymbolWithMarshalAndDiagnosticInfo
+        {
+            public readonly ImmutableArray<Diagnostic>? Diagnostics;
+            private readonly MethodSymbolWithMarshalInfo methodSymbolWithMarshalInfo;
+            public ImmutableArray<string?>? MarshalParamsAs => methodSymbolWithMarshalInfo.MarshalParamsAs;
+            public string? MarshalReturnAs => methodSymbolWithMarshalInfo.MarshalReturnAs;
+            public IMethodSymbol MethodSymbol => methodSymbolWithMarshalInfo.MethodSymbol;
+
+            public static implicit operator MethodSymbolWithMarshalInfo(MethodSymbolWithMarshalAndDiagnosticInfo info) => info.methodSymbolWithMarshalInfo;
+
+            public MethodSymbolWithMarshalAndDiagnosticInfo(IMethodSymbol methodSymbol, string? marshalReturnAs, ImmutableArray<string?>? marshalParamsAs, ImmutableArray<Diagnostic>? diagnostics)
+            {
+                Diagnostics = diagnostics;
+                methodSymbolWithMarshalInfo = new(methodSymbol, marshalReturnAs, marshalParamsAs);
+            }
+        }
+
         private readonly struct NativeGenericDelegateInfo
         {
             public readonly string ClassNamePrefix;
@@ -373,73 +451,111 @@ namespace NativeGenericDelegatesGenerator
             public readonly string InvokeReturnType;
             public readonly bool IsAction;
             public readonly bool IsFromFunctionPointerGeneric;
+            public readonly string? MarshalReturnAs;
             public readonly string NamedArguments;
             public readonly string ReturnKeyword;
-            public readonly string TypeArgumentCheckCondition;
+            public readonly string TypeArgumentCheckWithMarshalInfoCondition;
             public readonly int TypeArgumentCount;
             public readonly string TypeArguments;
             public readonly bool UnmanagedTypeArgumentsOnly;
 
-            public NativeGenericDelegateInfo(IMethodSymbol methodSymbol, CancellationToken cancellationToken)
+            private static string GetMarshalAsAttributeString(string? value)
             {
+                if (value is null)
+                {
+                    return "null";
+                }
+                int index = value.IndexOf(',');
+                if (index == -1)
+                {
+                    return $"new MarshalAsAttribute({value})";
+                }
+                string head = value.Substring(0, index);
+                string tail = value.Substring(index + 2);
+                return $"new MarshalAsAttribute({head}) {{ {tail} }}";
+            }
+
+            public NativeGenericDelegateInfo(MethodSymbolWithMarshalInfo methodSymbolWithMarshalInfo, CancellationToken cancellationToken)
+            {
+                IMethodSymbol methodSymbol = methodSymbolWithMarshalInfo.MethodSymbol;
                 INamedTypeSymbol interfaceSymbol = methodSymbol.ContainingType;
                 bool isAction = interfaceSymbol.Name.StartsWith(INativeActionIdentifier);
                 string identifier = isAction ? ActionIdentifier : FuncIdentifier;
-                IEnumerable<int> range = Enumerable.Range(1, interfaceSymbol.Arity);
-                ImmutableArray<string> typeArguments = interfaceSymbol.TypeArguments.Select(x => x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)).ToImmutableArray();
+                int typeArgumentCount = interfaceSymbol.Arity - (isAction ? 0 : 1);
+                IEnumerable<int> range = Enumerable.Range(0, typeArgumentCount);
+                ImmutableArray<string> typeArgumentsWithReturnType = interfaceSymbol.TypeArguments.Select(x => x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)).ToImmutableArray();
+                ImmutableArray<string> marshalParamsAs = range.Select
+                (
+                    x => methodSymbolWithMarshalInfo.MarshalParamsAs is not null && methodSymbolWithMarshalInfo.MarshalParamsAs.Value[x] is not null ?
+                        $"[MarshalAs({methodSymbolWithMarshalInfo.MarshalParamsAs.Value[x]})] " : ""
+                ).ToImmutableArray();
                 ImmutableArray<string> typeParameters = interfaceSymbol.TypeParameters.Select(x => x.ToString()).ToImmutableArray();
                 cancellationToken.ThrowIfCancellationRequested();
                 ClassNamePrefix = $"Native{identifier}_{Guid.NewGuid():N}";
-                FunctionPointerTypeArgumentsWithReturnType = string.Join(", ", typeArguments);
+                FunctionPointerTypeArgumentsWithReturnType = string.Join(", ", typeArgumentsWithReturnType);
                 Identifier = identifier;
                 IdentifierWithTypeArguments = $"{identifier}<{FunctionPointerTypeArgumentsWithReturnType}>";
                 IdentifierWithTypeParameters = $"{identifier}<{string.Join(", ", typeParameters)}>";
-                InvokeArguments = string.Join(", ", range.Take(typeArguments.Length - (isAction ? 0 : 1)).Select(x => $"_{x}"));
-                InvokeReturnType = isAction ? "void" : typeArguments[typeArguments.Length - 1];
+                InvokeArguments = string.Join(", ", range.Select(x => $"_{x + 1}"));
+                InvokeReturnType = isAction ? "void" : typeArgumentsWithReturnType[typeArgumentCount];
                 IsAction = isAction;
                 IsFromFunctionPointerGeneric = methodSymbol.IsGenericMethod;
-                NamedArguments = string.Join(", ", range.Take(typeArguments.Length - (isAction ? 0 : 1)).Select(x => $"{typeArguments[x - 1]} _{x}"));
+                MarshalReturnAs = methodSymbolWithMarshalInfo.MarshalReturnAs;
+                NamedArguments = string.Join(", ", range.Select(x => $"{marshalParamsAs[x]}{typeArgumentsWithReturnType[x]} _{x + 1}"));
                 ReturnKeyword = isAction ? "" : "return ";
-                TypeArgumentCount = typeArguments.Length;
-                TypeArguments = string.Join(", ", typeArguments.Take(typeArguments.Length - (isAction ? 0 : 1)));
+                TypeArgumentCount = typeArgumentCount;
+                TypeArguments = string.Join(", ", typeArgumentsWithReturnType.Take(typeArgumentCount));
                 UnmanagedTypeArgumentsOnly = interfaceSymbol.TypeArguments.All(x => x.IsUnmanagedType);
                 cancellationToken.ThrowIfCancellationRequested();
-                StringBuilder sb = new();
-                bool wrap = interfaceSymbol.Arity > 1;
+                string marshalReturnAsAttribute = GetMarshalAsAttributeString(methodSymbolWithMarshalInfo.MarshalReturnAs);
+                string marshalParamsAsAttributes = "null";
+                StringBuilder sb = new("new MarshalAsAttribute?[] { ");
+                string andNewLine = $@" &&
+                ";
+                if (methodSymbolWithMarshalInfo.MarshalParamsAs is not null && methodSymbolWithMarshalInfo.MarshalParamsAs.Value.Length > 0)
+                {
+                    for (int i = 0; i < typeArgumentCount; ++i)
+                    {
+                        if (i > 0)
+                        {
+                            _ = sb.Append(", ");
+                        }
+                        _ = sb.Append(GetMarshalAsAttributeString(methodSymbolWithMarshalInfo.MarshalParamsAs.Value[i]));
+                    }
+                    _ = sb.Append(" }");
+                    marshalParamsAsAttributes = sb.ToString();
+                }
+                cancellationToken.ThrowIfCancellationRequested();
+                sb.Clear();
                 for (int i = 0; i < interfaceSymbol.Arity; ++i)
                 {
-                    _ = sb.Append($"{(wrap ? "(" : "")}typeof({typeParameters[i]}) == typeof({typeArguments[i]}){(wrap ? ")" : "")}");
+                    _ = sb.Append($"(typeof({typeParameters[i]}) == typeof({typeArgumentsWithReturnType[i]}))");
                     if ((i + 1) < interfaceSymbol.Arity)
                     {
-                        _ = sb.Append(" && ");
+                        _ = sb.Append(andNewLine);
                     }
                 }
-                TypeArgumentCheckCondition = sb.ToString();
-                cancellationToken.ThrowIfCancellationRequested();
                 if (methodSymbol.IsGenericMethod)
                 {
-                    typeArguments = methodSymbol.TypeArguments.Select(x => x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)).ToImmutableArray();
-                    FunctionPointerTypeArgumentsWithReturnType = $"{string.Join(", ", typeArguments)}{(isAction ? ", void" : "")}";
-                    if (!wrap)
+                    typeArgumentsWithReturnType = methodSymbol.TypeArguments.Select(x => x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)).ToImmutableArray();
+                    FunctionPointerTypeArgumentsWithReturnType = $"{string.Join(", ", typeArgumentsWithReturnType)}{(isAction ? ", void" : "")}";
+                    _ = sb.Append(andNewLine);
+                    for (int i = 0; i < methodSymbol.Arity; ++i)
                     {
-                        _ = sb.Insert(0, '(').Append(')');
-                    }
-                    _ = sb.Append(" && ");
-                    for (int i = 0; i < typeArguments.Length; ++i)
-                    {
-                        _ = sb.Append($"(typeof({methodSymbol.TypeParameters[i]}) == typeof({typeArguments[i]}))");
-                        if ((i + 1) < typeArguments.Length)
+                        _ = sb.Append($"(typeof({methodSymbol.TypeParameters[i]}) == typeof({typeArgumentsWithReturnType[i]}))");
+                        if ((i + 1) < methodSymbol.Arity)
                         {
-                            _ = sb.Append(" && ");
+                            _ = sb.Append(andNewLine);
                         }
                     }
-                    cancellationToken.ThrowIfCancellationRequested();
-                    TypeArgumentCheckCondition = sb.ToString();
                 }
                 else if (isAction)
                 {
                     FunctionPointerTypeArgumentsWithReturnType += ", void";
                 }
+                cancellationToken.ThrowIfCancellationRequested();
+                _ = sb.Append(andNewLine).Append($"MarshalInfo.Equals({(isAction ? "null" : "marshalReturnAs")}, marshalParamsAs, {marshalReturnAsAttribute}, {marshalParamsAsAttributes})");
+                TypeArgumentCheckWithMarshalInfoCondition = sb.ToString();
             }
         }
 
@@ -458,13 +574,15 @@ namespace NativeGenericDelegatesGenerator
                 string funcPtr = $"delegate* unmanaged[{unmanagedCallConv}]<{info.FunctionPointerTypeArgumentsWithReturnType}>";
                 string call = info.UnmanagedTypeArgumentsOnly ? $"{info.ReturnKeyword}(({funcPtr})_functionPtr)({info.InvokeArguments});" : $"{info.ReturnKeyword}_delegate({info.InvokeArguments});";
                 string getDelegate = info.UnmanagedTypeArgumentsOnly ? "Invoke" : $"Marshal.GetDelegateForFunctionPointer<NonGeneric{info.Identifier}>(functionPtr)";
+                string returnMarshal = info.MarshalReturnAs is not null ? $@"
+        [return: MarshalAs({info.MarshalReturnAs})]" : "";
                 _ = sb.AppendLine($@"
     file unsafe class {info.ClassNamePrefix}_{callConv} : INative{info.IdentifierWithTypeArguments}
     {{
         private readonly NonGeneric{info.Identifier} _delegate;
         private readonly {funcPtr} _functionPtr;
 
-        [UnmanagedFunctionPointer(CallingConvention.{callConv})]
+        [UnmanagedFunctionPointer(CallingConvention.{callConv})]{returnMarshal}
         public delegate {info.InvokeReturnType} NonGeneric{info.Identifier}({info.NamedArguments});
 
         internal {info.ClassNamePrefix}_{callConv}({info.IdentifierWithTypeArguments} _delegate)
@@ -487,7 +605,7 @@ namespace NativeGenericDelegatesGenerator
         }}
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [UnmanagedCallConv(CallConvs = new[] {{ typeof(CallConv{unmanagedCallConv}) }})]
+        [UnmanagedCallConv(CallConvs = new[] {{ typeof(CallConv{unmanagedCallConv}) }})]{returnMarshal}
         public {info.InvokeReturnType} Invoke({info.NamedArguments})
         {{
             {call}
@@ -518,7 +636,7 @@ namespace NativeGenericDelegatesGenerator
                     arg = "_delegate";
                     cast = $"({info.IdentifierWithTypeArguments})(object)";
                 }
-                _ = sb.AppendLine($@"            if ({info.TypeArgumentCheckCondition})
+                _ = sb.AppendLine($@"            if ({info.TypeArgumentCheckWithMarshalInfoCondition})
             {{
                 return (INative{info.IdentifierWithTypeParameters})(object)(callingConvention switch
                 {{
@@ -549,7 +667,7 @@ namespace NativeGenericDelegatesGenerator
 
             public NativeGenericDelegateConcreteClassInfo(in NativeGenericDelegateInfo info)
             {
-                ArgumentCount = info.TypeArgumentCount - (info.IsAction ? 0 : 1);
+                ArgumentCount = info.TypeArgumentCount;
                 ClassDefinitions = BuildClassDefinitions(in info);
                 (FromDelegateTypeCheck, FromFunctionPointerTypeCheck, FromFunctionPointerGenericTypeCheck) = BuildTypeChecks(in info);
                 IsAction = info.IsAction;
@@ -625,11 +743,13 @@ namespace NativeGenericDelegatesGenerator
             string genericIdentifier = $"{identifier}<{typeParameters}>";
             string namedArguments = NamedGenericTypeArguments[argumentCount];
             string unmanagedTypeParameters = typeParameters.Replace("T", "U");
+            string marshalReturnAs = isAction ? "" : $", MarshalAsAttribute? marshalReturnAs = null";
+            string marshalReturnAsRequired = isAction ? "" : $", MarshalAsAttribute marshalReturnAs";
             return $@"    public partial interface INative{identifier}<{qualifiedTypeParameters}>
     {{
-        public static partial INative{genericIdentifier} From{identifier}({genericIdentifier} {identifier.ToLower()}, CallingConvention callingConvention = CallingConvention.Winapi);
-        public static partial INative{genericIdentifier} FromFunctionPointer(nint functionPtr, CallingConvention callingConvention = CallingConvention.Winapi);
-        public static partial INative{genericIdentifier} FromFunctionPointer<{unmanagedTypeParameters}>(nint functionPtr, CallingConvention callingConvention = CallingConvention.Winapi){constraints};
+        public static partial INative{genericIdentifier} From{identifier}({genericIdentifier} {identifier.ToLower()}{marshalReturnAs}, MarshalAsAttribute?[]? marshalParamsAs = null, CallingConvention callingConvention = CallingConvention.Winapi);
+        public static partial INative{genericIdentifier} FromFunctionPointer(nint functionPtr{marshalReturnAs}, MarshalAsAttribute?[]? marshalParamsAs = null, CallingConvention callingConvention = CallingConvention.Winapi);
+        public static partial INative{genericIdentifier} FromFunctionPointer<{unmanagedTypeParameters}>(nint functionPtr{marshalReturnAsRequired}, MarshalAsAttribute[] marshalParamsAs, CallingConvention callingConvention = CallingConvention.Winapi){constraints};
 
         public nint GetFunctionPointer();
         public {returnType} Invoke({namedArguments});
@@ -653,20 +773,21 @@ namespace NativeGenericDelegatesGenerator
             }
             string genericIdentifier = $"{identifier}<{typeParameters}>";
             string unmanagedTypeParameters = typeParameters.Replace('T', 'U');
-            int index = argumentCount - (isAction ? 1 : 0);
+            string marshalReturnAs = isAction ? "" : $", MarshalAsAttribute? marshalReturnAs";
+            string marshalReturnAsRequired = isAction ? "" : $", MarshalAsAttribute marshalReturnAs";
             return $@"    public partial interface INative{identifier}<{qualifiedTypeParameters}>
     {{
-        public static partial INative{genericIdentifier} From{identifier}({genericIdentifier} _delegate, CallingConvention callingConvention)
+        public static partial INative{genericIdentifier} From{identifier}({genericIdentifier} _delegate{marshalReturnAs}, MarshalAsAttribute?[]? marshalParamsAs, CallingConvention callingConvention)
         {{
             {fromDelegate}
         }}
 
-        public static partial INative{genericIdentifier} FromFunctionPointer(nint functionPtr, CallingConvention callingConvention)
+        public static partial INative{genericIdentifier} FromFunctionPointer(nint functionPtr{marshalReturnAs}, MarshalAsAttribute?[]? marshalParamsAs, CallingConvention callingConvention)
         {{
             {fromFunctionPointer}
         }}
 
-        public static partial INative{genericIdentifier} FromFunctionPointer<{unmanagedTypeParameters}>(nint functionPtr, CallingConvention callingConvention){constraints}
+        public static partial INative{genericIdentifier} FromFunctionPointer<{unmanagedTypeParameters}>(nint functionPtr{marshalReturnAsRequired}, MarshalAsAttribute[] marshalParamsAs, CallingConvention callingConvention){constraints}
         {{
             {fromFunctionPointerGeneric}
         }}
@@ -687,6 +808,173 @@ namespace NativeGenericDelegatesGenerator
             _ = sb.Append(typeCheck);
         }
 
+        private static void GetMarshalAsFromField(IFieldReferenceOperation fieldReference, CancellationToken cancellationToken, int argumentCount, List<Diagnostic> diagnostics, Location location, List<string?> marshalAsStrings)
+        {
+            // `GetOperation` is only returning `null` for the relevant `SyntaxNode`s here, so we have to manually parse the field initializer
+            // see <https://stackoverflow.com/q/75916082/1136311>
+            bool isArray = fieldReference.Field.Type is IArrayTypeSymbol;
+            SyntaxNode fieldDeclaration = fieldReference.Field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken)!;
+            StringBuilder sb = new();
+            bool isInsideArrayInitializer = false;
+            bool isInsideNewExpression = false;
+            bool isInsideObjectInitializer = false;
+            bool addedArrayLengthDiagnostic = false;
+            var addMarshalAsString = () =>
+            {
+                if (sb.Length != 0)
+                {
+                    marshalAsStrings.Add(sb.ToString());
+                    if (isArray && !addedArrayLengthDiagnostic && marshalAsStrings.Count > argumentCount)
+                    {
+                        addedArrayLengthDiagnostic = true;
+                        diagnostics.Add(Diagnostic.Create(InvalidMarshalParamsAsArrayLengthDescriptor, location));
+                    }
+                    _ = sb.Clear();
+                }
+            };
+            foreach (var syntaxToken in fieldDeclaration.DescendantTokens())
+            {
+                var token = syntaxToken.ToString();
+                switch (token)
+                {
+                    case "{":
+                        if (isArray && !isInsideArrayInitializer)
+                        {
+                            isInsideArrayInitializer = true;
+                            continue;
+                        }
+                        isInsideObjectInitializer = true;
+                        _ = sb.Append(", ");
+                        continue;
+                    case "(":
+                        isInsideNewExpression = true;
+                        continue;
+                    case ")":
+                        isInsideNewExpression = false;
+                        continue;
+                    case "}":
+                        if (isInsideObjectInitializer)
+                        {
+                            isInsideObjectInitializer = false;
+                            addMarshalAsString();
+                            continue;
+                        }
+                        isInsideArrayInitializer = false;
+                        addMarshalAsString();
+                        continue;
+                    case "new":
+                        addMarshalAsString();
+                        continue;
+                    case "null":
+                    case "null!": // TODO: are `null` and `!` parsed as separate tokens?
+                        marshalAsStrings.Add(null);
+                        continue;
+                    case ",":
+                        if (isInsideObjectInitializer)
+                        {
+                            if (sb.Length != 0)
+                            {
+                                _ = sb.Append(", ");
+                            }
+                        }
+                        else
+                        {
+                            addMarshalAsString();
+                        }
+                        continue;
+                    default:
+                        break;
+                }
+                if (isInsideNewExpression)
+                {
+                    _ = sb.Append(token);
+                }
+                else if (isInsideObjectInitializer)
+                {
+                    if (token == "=")
+                    {
+                        _ = sb.Append(" = ");
+                    }
+                    else
+                    {
+                        _ = sb.Append(token);
+                    }
+                }
+            }
+            addMarshalAsString();
+        }
+
+        private static void GetMarshalAsFromOperation(IOperation value, CancellationToken cancellationToken, int argumentCount, List<Diagnostic> diagnostics, Location location, List<string?> marshalAsStrings)
+        {
+            if (value.ConstantValue.HasValue) // value is null
+            {
+                return;
+            }
+            if (value is IFieldReferenceOperation fieldReference && fieldReference.Field.IsReadOnly)
+            {
+                GetMarshalAsFromField(fieldReference, cancellationToken, argumentCount, diagnostics, location, marshalAsStrings);
+                return;
+            }
+            IObjectCreationOperation? objectCreation = value as IObjectCreationOperation;
+            if (value is IConversionOperation conversion) // new(...) without class name
+            {
+                objectCreation = conversion.ChildOperations.OfType<IObjectCreationOperation>().FirstOrDefault();
+            }
+            if (objectCreation is null)
+            {
+                diagnostics.Add(Diagnostic.Create(MarshalAsArgumentMustUseObjectCreationSyntaxDescriptor, location));
+                return;
+            }
+            StringBuilder sb = new(objectCreation.Arguments[0].Syntax.ToString());
+            if (objectCreation.Initializer is not null)
+            {
+                _ = sb.Append(objectCreation.Initializer.Syntax.ToString());
+                _ = sb.Replace('{', ',').Replace("}", "");
+            }
+            marshalAsStrings.Add(sb.ToString());
+        }
+
+        private static void GetMarshalAsFromOperation(IOperation value, CancellationToken cancellationToken, List<Diagnostic> diagnostics, Location location, out string? marshalAsString)
+        {
+            List<string?> marshalAsStrings = new(1);
+            GetMarshalAsFromOperation(value, cancellationToken, 0, diagnostics, location, marshalAsStrings);
+            marshalAsString = marshalAsStrings.FirstOrDefault();
+        }
+
+        private static ImmutableArray<string?>? GetMarshalAsCollectionFromOperation(IOperation collection, CancellationToken cancellationToken, int argumentCount, List<Diagnostic> diagnostics, Location location)
+        {
+            List<string?> marshalAsParamsStrings = new();
+            if (collection is IArrayCreationOperation arrayCreation)
+            {
+                var arrayLength = arrayCreation.DimensionSizes[0].ConstantValue;
+                if (!arrayLength.HasValue || ((int)arrayLength.Value!) != argumentCount)
+                {
+                    diagnostics.Add(Diagnostic.Create(InvalidMarshalParamsAsArrayLengthDescriptor, location));
+                }
+                else if (arrayCreation.Initializer is not null)
+                {
+                    foreach (var elementValue in arrayCreation.Initializer.ElementValues)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        GetMarshalAsFromOperation(elementValue, cancellationToken, argumentCount, diagnostics, location, marshalAsParamsStrings);
+                    }
+                }
+                // else (no initializer), default to no marshaling
+            }
+            else if (!collection.ConstantValue.HasValue) // argument is not null
+            {
+                if (collection is IFieldReferenceOperation fieldReference && fieldReference.Field.IsReadOnly && fieldReference.Type is IArrayTypeSymbol)
+                {
+                    GetMarshalAsFromOperation(collection, cancellationToken, argumentCount, diagnostics, location, marshalAsParamsStrings);
+                }
+                else
+                {
+                    diagnostics.Add(Diagnostic.Create(MarshalAsArgumentMustUseObjectCreationSyntaxDescriptor, location));
+                }
+            }
+            return marshalAsParamsStrings.Count > 0 ? marshalAsParamsStrings.ToImmutableArray() : null;
+        }
+
         private static string GetUnmanagedCallConv(string callConv)
         {
             return callConv switch
@@ -700,7 +988,7 @@ namespace NativeGenericDelegatesGenerator
 
         public void Initialize(IncrementalGeneratorInitializationContext initContext)
         {
-            var methodSymbols = initContext.SyntaxProvider.CreateSyntaxProvider(static (node, _) =>
+            var methodSymbolsWithContext = initContext.SyntaxProvider.CreateSyntaxProvider(static (node, _) =>
             {
                 if (node is InvocationExpressionSyntax)
                 {
@@ -714,11 +1002,7 @@ namespace NativeGenericDelegatesGenerator
             },
             static (context, _) => context).Collect().SelectMany(static (contextArray, cancellationToken) =>
             {
-                // we use a hash set to denote a unique combination of interface type arguments and method type arguments (for generic FromFunctionPointer)
-                // we don't want to create duplicate classes if we are using FromAction/FromFunc alongside the non-generic FromFunctionPointer with the same
-                // interface type arguments, so we can't use the IMethodSymbol as the hash key in these cases, hence the separate list of IMethodSymbols
-                HashSet<ISymbol> symbolHashSet = new(SymbolEqualityComparer.Default);
-                List<IMethodSymbol> symbolList = new();
+                List<MethodSymbolWithContext> symbolsWithContext = new();
                 foreach (var context in contextArray)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -733,11 +1017,12 @@ namespace NativeGenericDelegatesGenerator
                             continue;
                     }
                     INamedTypeSymbol? interfaceSymbol = methodSymbol.ContainingType;
+                    bool isAction = interfaceSymbol?.Name == INativeActionIdentifier;
                     // this may be overkill (and there may be a simpler way to validate this as one of the interfaces we define), but this should cover any erroneous matches
                     if ((interfaceSymbol is null) || (interfaceSymbol.ContainingNamespace is null) || (interfaceSymbol.ContainingNamespace.ContainingNamespace is null) ||
                         (!interfaceSymbol.ContainingNamespace.ContainingNamespace.IsGlobalNamespace) || (interfaceSymbol.ContainingNamespace.Name != RootNamespace) ||
                         (interfaceSymbol.TypeKind != TypeKind.Interface) || !interfaceSymbol.IsGenericType || (interfaceSymbol.Arity == 0) ||
-                        ((interfaceSymbol.Name != INativeActionIdentifier) && (interfaceSymbol.Name != INativeFuncIdentifier)))
+                        (!isAction && (interfaceSymbol.Name != INativeFuncIdentifier)) || (methodSymbol.Parameters.Length != (isAction ? 3 : 4)))
                     {
                         continue;
                     }
@@ -756,17 +1041,73 @@ namespace NativeGenericDelegatesGenerator
                     {
                         continue;
                     }
-                    if (symbolHashSet.Add(methodSymbol.IsGenericMethod ? methodSymbol : interfaceSymbol))
-                    {
-                        symbolList.Add(methodSymbol);
-                    }
+                    symbolsWithContext.Add(new(methodSymbol, context, isAction));
                 }
-                return symbolList.ToImmutableArray();
+                return symbolsWithContext.ToImmutableArray();
             });
-            var infos = methodSymbols.Select(static (methodSymbol, cancellationToken) =>
+            var methodSymbolsWithMarshalAndDiagnosticInfo = methodSymbolsWithContext.Select(static (methodSymbolWithContext, cancellationToken) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                return new NativeGenericDelegateInfo(methodSymbol, cancellationToken);
+                var context = methodSymbolWithContext.Context;
+                IMethodSymbol methodSymbol = methodSymbolWithContext.MethodSymbol;
+                IArgumentOperation? marshalParamsAsArgument = null;
+                IArgumentOperation? marshalReturnAsArgument = null;
+                foreach (var argumentNode in context.Node.DescendantNodes().OfType<ArgumentSyntax>())
+                {
+                    var argument = (IArgumentOperation?)context.SemanticModel.GetOperation(argumentNode, cancellationToken);
+                    if (argument is null)
+                    {
+                        // null implies the default marshaling behavior, so we don't need to inspect the parameter name
+                        continue;
+                    }
+                    switch (argument.Parameter?.Name)
+                    {
+                        case "marshalParamsAs":
+                            marshalParamsAsArgument = argument;
+                            break;
+                        case "marshalReturnAs":
+                            marshalReturnAsArgument = argument;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                string? marshalReturnAsString = null;
+                ImmutableArray<string?>? marshalParamsAsStrings = null;
+                List<Diagnostic> diagnostics = new();
+                Location location = context.Node.GetLocation();
+                if (marshalReturnAsArgument is not null)
+                {
+                    GetMarshalAsFromOperation(marshalReturnAsArgument.Value, cancellationToken, diagnostics, location, out marshalReturnAsString);
+                }
+                if (marshalParamsAsArgument is not null)
+                {
+                    marshalParamsAsStrings = GetMarshalAsCollectionFromOperation(marshalParamsAsArgument.Value, cancellationToken, methodSymbol.ContainingType!.Arity - (methodSymbolWithContext.IsAction ? 0 : 1), diagnostics, location);
+                }
+                return new MethodSymbolWithMarshalAndDiagnosticInfo(methodSymbol, marshalReturnAsString, marshalParamsAsStrings, diagnostics.Count > 0 ? diagnostics.ToImmutableArray() : null);
+            });
+            var diagnostics = methodSymbolsWithMarshalAndDiagnosticInfo.Where(static x => x.Diagnostics is not null).Select(static (x, _) => x.Diagnostics);
+            initContext.RegisterSourceOutput(diagnostics, static (source, diagnostics) =>
+            {
+                foreach (var diagnostic in diagnostics!)
+                {
+                    source.ReportDiagnostic(diagnostic);
+                }
+            });
+            var methodSymbolsWithMarshalInfo = methodSymbolsWithMarshalAndDiagnosticInfo.Where(static x => x.Diagnostics is null).Collect().SelectMany(static (symbolsWithMarshalInfo, cancellationToken) =>
+            {
+                HashSet<MethodSymbolWithMarshalInfo> infoSet = new();
+                foreach (var symbolWithMarshalInfo in symbolsWithMarshalInfo)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    _ = infoSet.Add(symbolWithMarshalInfo);
+                }
+                return infoSet.ToImmutableArray();
+            });
+            var infos = methodSymbolsWithMarshalInfo.Select(static (methodSymbolWithMarshalInfo, cancellationToken) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return new NativeGenericDelegateInfo(methodSymbolWithMarshalInfo, cancellationToken);
             }).Select(static (info, cancellationToken) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -846,10 +1187,66 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #pragma warning disable CS8826 // Partial method declarations have different signatures (erroneous)
+#nullable enable
 
 namespace {RootNamespace}
-{{{classes}{partialImplementations}}}
+{{
+    file static class MarshalInfo
+    {{
+        internal static bool Equals(MarshalAsAttribute? marshalReturnAsLeft, MarshalAsAttribute?[]? marshalParamsAsLeft, MarshalAsAttribute? marshalReturnAsRight, MarshalAsAttribute?[]? marshalParamsAsRight)
+        {{
+            if (!Equals(marshalReturnAsLeft, marshalReturnAsRight))
+            {{
+                return false;
+            }}
+            if (marshalParamsAsLeft is null)
+            {{
+                return marshalParamsAsRight is null;
+            }}
+            else if (marshalParamsAsRight is null)
+            {{
+                return false;
+            }}
+            if (marshalParamsAsLeft.Length != marshalParamsAsRight.Length)
+            {{
+                return false;
+            }}
+            for (int i = 0; i < marshalParamsAsLeft.Length; ++i)
+            {{
+                if (!Equals(marshalParamsAsLeft[i], marshalParamsAsRight[i]))
+                {{
+                    return false;
+                }}
+            }}
+            return true;
+        }}
 
+        private static bool Equals(MarshalAsAttribute? left, MarshalAsAttribute? right)
+        {{
+            if (left is null)
+            {{
+                return right is null;
+            }}
+            if (right is null)
+            {{
+                return false;
+            }}
+            return
+                left.Value == right.Value &&
+                left.SafeArraySubType == right.SafeArraySubType &&
+                left.SafeArrayUserDefinedSubType == right.SafeArrayUserDefinedSubType &&
+                left.IidParameterIndex == right.IidParameterIndex &&
+                left.ArraySubType == right.ArraySubType &&
+                left.SizeParamIndex == right.SizeParamIndex &&
+                left.SizeConst == right.SizeConst &&
+                left.MarshalType == right.MarshalType &&
+                left.MarshalTypeRef == right.MarshalTypeRef &&
+                left.MarshalCookie == right.MarshalCookie;
+        }}
+    }}
+{classes}{partialImplementations}}}
+
+#nullable restore
 #pragma warning restore CS8826 // Partial method declarations have different signatures (erroneous)
 ");
                 context.AddSource(SourceFileName, source.ToString());
@@ -862,6 +1259,8 @@ namespace {RootNamespace}
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+#nullable enable
 
 namespace {RootNamespace}
 {{
@@ -910,7 +1309,9 @@ namespace {RootNamespace}
                 _ = source.AppendLine().AppendLine($"{BuildPartialInterfaceDeclaration(isAction: true, argumentCount: i)}");
                 _ = source.Append($"{BuildPartialInterfaceDeclaration(isAction: false, argumentCount: i)}");
             }
-            _ = source.AppendLine("}");
+            _ = source.AppendLine($@"}}
+
+#nullable restore");
             context.AddSource(DeclarationsSourceFileName, source.ToString());
         }
     }
