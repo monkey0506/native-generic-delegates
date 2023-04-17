@@ -6,12 +6,21 @@ namespace NativeGenericDelegatesGenerator
 {
     internal readonly struct MethodSymbolWithMarshalInfo : IEquatable<MethodSymbolWithMarshalInfo>
     {
+        private readonly int Hash;
         public readonly ImmutableArray<string?>? MarshalParamsAs;
         public readonly string? MarshalReturnAs;
         public readonly IMethodSymbol MethodSymbol;
 
         public MethodSymbolWithMarshalInfo(IMethodSymbol methodSymbol, string? marshalReturnAs, ImmutableArray<string?>? marshalParamsAs)
         {
+            Hash = 1009;
+            int factor = 9176;
+            foreach (string? s in marshalParamsAs ?? ImmutableArray<string?>.Empty)
+            {
+                Hash = (Hash * factor) + (s ?? "").GetHashCode();
+            }
+            Hash = (Hash * factor) + (MarshalReturnAs ?? "").GetHashCode();
+            Hash = (Hash * factor) + SymbolEqualityComparer.Default.GetHashCode(methodSymbol.IsGenericMethod ? methodSymbol : methodSymbol.ContainingType);
             MarshalParamsAs = marshalParamsAs;
             MarshalReturnAs = marshalReturnAs;
             MethodSymbol = methodSymbol;
@@ -24,20 +33,12 @@ namespace NativeGenericDelegatesGenerator
 
         public bool Equals(MethodSymbolWithMarshalInfo other)
         {
-            return GetHashCode() == other.GetHashCode();
+            return Hash == other.Hash;
         }
 
         public override int GetHashCode()
         {
-            int hash = 1009;
-            int factor = 9176;
-            foreach (string? s in MarshalParamsAs ?? ImmutableArray<string?>.Empty)
-            {
-                hash = (hash * factor) + (s ?? "").GetHashCode();
-            }
-            hash = (hash * factor) + (MarshalReturnAs ?? "").GetHashCode();
-            hash = (hash * factor) + SymbolEqualityComparer.Default.GetHashCode(MethodSymbol.IsGenericMethod ? MethodSymbol : MethodSymbol.ContainingType);
-            return hash;
+            return Hash;
         }
     }
 }
