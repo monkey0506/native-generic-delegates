@@ -102,7 +102,6 @@ namespace NativeGenericDelegatesGenerator
                         addMarshalAsString();
                         continue;
                     case "null":
-                    case "null!": // TODO: are `null` and `!` parsed as separate tokens?
                         marshalAsStrings.Add(null);
                         continue;
                     case ",":
