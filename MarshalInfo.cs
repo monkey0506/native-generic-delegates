@@ -153,6 +153,7 @@ namespace NativeGenericDelegatesGenerator
         {
             if (value.ConstantValue.HasValue) // value is null
             {
+                marshalAsStrings.Add(null);
                 return;
             }
             if (value is IFieldReferenceOperation fieldReference && fieldReference.Field.IsReadOnly)
