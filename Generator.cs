@@ -19,8 +19,7 @@
 // interfaces at compile-time, using an incremental source generator. This
 // version is a work-in-progress that may have bugs and is not feature
 // complete. Importantly, the generated class objects are not instances of the
-// Delegate or MulticastDelegate types. There is also no support for custom
-// marshalling at this time.
+// Delegate or MulticastDelegate types.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
