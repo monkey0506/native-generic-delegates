@@ -29,6 +29,7 @@ namespace NativeGenericDelegatesGenerator
         public readonly string InvokeReturnType;
         public readonly bool IsAction;
         public readonly bool IsFromFunctionPointerGeneric;
+        public readonly RuntimeMarshalAsAttributeArrayCollection MarshalAsArrayCollection;
         public readonly string? MarshalReturnAs;
         public readonly string NamedArguments;
         public readonly string ReturnKeyword;
@@ -53,7 +54,7 @@ namespace NativeGenericDelegatesGenerator
             return $"new MarshalAsAttribute({head}) {{ {tail} }}";
         }
 
-        public NativeGenericDelegateInfo(MethodSymbolWithMarshalInfo methodSymbolWithMarshalInfo, CancellationToken cancellationToken)
+        public NativeGenericDelegateInfo(MethodSymbolWithMarshalInfo methodSymbolWithMarshalInfo, CancellationToken cancellationToken, RuntimeMarshalAsAttributeArrayCollection marshalAsArrayCollection)
         {
             IMethodSymbol methodSymbol = methodSymbolWithMarshalInfo.MethodSymbol;
             INamedTypeSymbol interfaceSymbol = methodSymbol.ContainingType;
@@ -78,6 +79,7 @@ namespace NativeGenericDelegatesGenerator
             InvokeReturnType = isAction ? "void" : typeArgumentsWithReturnType[typeArgumentCount];
             IsAction = isAction;
             IsFromFunctionPointerGeneric = methodSymbol.IsGenericMethod;
+            MarshalAsArrayCollection = marshalAsArrayCollection;
             MarshalReturnAs = methodSymbolWithMarshalInfo.MarshalReturnAs;
             NamedArguments = string.Join(", ", range.Select(x => $"{marshalParamsAs[x]}{typeArgumentsWithReturnType[x]} _{x + 1}"));
             ReturnKeyword = isAction ? "" : "return ";
@@ -85,26 +87,13 @@ namespace NativeGenericDelegatesGenerator
             TypeArguments = string.Join(", ", typeArgumentsWithReturnType.Take(typeArgumentCount));
             UnmanagedTypeArgumentsOnly = interfaceSymbol.TypeArguments.All(x => x.IsUnmanagedType);
             cancellationToken.ThrowIfCancellationRequested();
-            string marshalReturnAsAttribute = GetMarshalAsAttributeString(methodSymbolWithMarshalInfo.MarshalReturnAs);
-            string marshalParamsAsAttributes = "null";
-            StringBuilder sb = new("new MarshalAsAttribute?[] { ");
+            int marshalReturnAsIndex = marshalAsArrayCollection.MarshalAsAttributeCollection.AddOrLookup(methodSymbolWithMarshalInfo.MarshalReturnAs);
+            int marshalParamsAsIndex = marshalAsArrayCollection.AddOrLookup(methodSymbolWithMarshalInfo.MarshalParamsAs);
+
             string andNewLine = $@" &&
                 ";
-            if (methodSymbolWithMarshalInfo.MarshalParamsAs is not null && methodSymbolWithMarshalInfo.MarshalParamsAs.Value.Length > 0)
-            {
-                for (int i = 0; i < typeArgumentCount; ++i)
-                {
-                    if (i > 0)
-                    {
-                        _ = sb.Append(", ");
-                    }
-                    _ = sb.Append(GetMarshalAsAttributeString(methodSymbolWithMarshalInfo.MarshalParamsAs.Value[i]));
-                }
-                _ = sb.Append(" }");
-                marshalParamsAsAttributes = sb.ToString();
-            }
             cancellationToken.ThrowIfCancellationRequested();
-            sb.Clear();
+            StringBuilder sb = new();
             for (int i = 0; i < interfaceSymbol.Arity; ++i)
             {
                 _ = sb.Append($"(typeof({typeParameters[i]}) == typeof({typeArgumentsWithReturnType[i]}))");
@@ -132,8 +121,8 @@ namespace NativeGenericDelegatesGenerator
                 FunctionPointerTypeArgumentsWithReturnType += ", void";
             }
             cancellationToken.ThrowIfCancellationRequested();
-            _ = sb.Append(andNewLine).Append($"MarshalInfo.Equals({(isAction ? "null" : "marshalReturnAs")}, {marshalReturnAsAttribute})")
-                .Append(andNewLine).Append($"MarshalInfo.PartiallyEquals(marshalParamsAs, {marshalParamsAsAttributes})");
+            _ = sb.Append(andNewLine).Append($"MarshalInfo.Equals({(isAction ? "null" : "marshalReturnAs")}, MarshalInfo.Attributes[{marshalReturnAsIndex}])")
+                .Append(andNewLine).Append($"MarshalInfo.PartiallyEquals(marshalParamsAs, MarshalInfo.AttributeArrays[{marshalParamsAsIndex}])");
             TypeArgumentCheckWithMarshalInfoCondition = sb.ToString();
         }
     }
