@@ -132,7 +132,8 @@ namespace NativeGenericDelegatesGenerator
                 FunctionPointerTypeArgumentsWithReturnType += ", void";
             }
             cancellationToken.ThrowIfCancellationRequested();
-            _ = sb.Append(andNewLine).Append($"MarshalInfo.Equals({(isAction ? "null" : "marshalReturnAs")}, marshalParamsAs, {marshalReturnAsAttribute}, {marshalParamsAsAttributes})");
+            _ = sb.Append(andNewLine).Append($"MarshalInfo.Equals({(isAction ? "null" : "marshalReturnAs")}, {marshalReturnAsAttribute})")
+                .Append(andNewLine).Append($"MarshalInfo.PartiallyEquals(marshalParamsAs, {marshalParamsAsAttributes})");
             TypeArgumentCheckWithMarshalInfoCondition = sb.ToString();
         }
     }

@@ -25,20 +25,23 @@ namespace NativeGenericDelegatesGenerator
             List<string?> marshalAsParamsStrings = new();
             if (collection is IArrayCreationOperation arrayCreation)
             {
-                var arrayLength = arrayCreation.DimensionSizes[0].ConstantValue;
-                if (!arrayLength.HasValue || ((int)arrayLength.Value!) != argumentCount)
-                {
-                    diagnostics.Add(Diagnostic.Create(Constants.InvalidMarshalParamsAsArrayLengthDescriptor, location));
-                }
-                else if (arrayCreation.Initializer is not null)
+                if (arrayCreation.Initializer is not null && (argumentCount > 0))
                 {
                     foreach (var elementValue in arrayCreation.Initializer.ElementValues)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         GetMarshalAsFromOperation(elementValue, cancellationToken, argumentCount, diagnostics, location, marshalAsParamsStrings);
+                        if (marshalAsParamsStrings.Count == argumentCount)
+                        {
+                            break;
+                        }
+                    }
+                    for (int count = marshalAsParamsStrings.Count; count < argumentCount; ++count)
+                    {
+                        marshalAsParamsStrings.Add(null);
                     }
                 }
-                // else (no initializer), default to no marshaling
+                // else (no initializer or no arguments), default to no marshaling
             }
             else if (!collection.ConstantValue.HasValue) // argument is not null
             {
@@ -54,7 +57,7 @@ namespace NativeGenericDelegatesGenerator
             return marshalAsParamsStrings.Count > 0 ? marshalAsParamsStrings.ToImmutableArray() : null;
         }
 
-        private static void GetMarshalAsFromField(IFieldReferenceOperation fieldReference, CancellationToken cancellationToken, int argumentCount, List<Diagnostic> diagnostics, Location location, List<string?> marshalAsStrings)
+        private static void GetMarshalAsFromField(IFieldReferenceOperation fieldReference, CancellationToken cancellationToken, int argumentCount, List<string?> marshalAsStrings)
         {
             // `GetOperation` is only returning `null` for the relevant `SyntaxNode`s here, so we have to manually parse the field initializer
             // see <https://stackoverflow.com/q/75916082/1136311>
@@ -64,22 +67,20 @@ namespace NativeGenericDelegatesGenerator
             bool isInsideArrayInitializer = false;
             bool isInsideNewExpression = false;
             bool isInsideObjectInitializer = false;
-            bool addedArrayLengthDiagnostic = false;
             var addMarshalAsString = () =>
             {
                 if (sb.Length != 0)
                 {
                     marshalAsStrings.Add(sb.ToString());
-                    if (isArray && !addedArrayLengthDiagnostic && marshalAsStrings.Count > argumentCount)
-                    {
-                        addedArrayLengthDiagnostic = true;
-                        diagnostics.Add(Diagnostic.Create(Constants.InvalidMarshalParamsAsArrayLengthDescriptor, location));
-                    }
                     _ = sb.Clear();
                 }
             };
             foreach (var syntaxToken in fieldDeclaration.DescendantTokens())
             {
+                if (marshalAsStrings.Count == argumentCount)
+                {
+                    return;
+                }
                 var token = syntaxToken.ToString();
                 switch (token)
                 {
@@ -112,7 +113,15 @@ namespace NativeGenericDelegatesGenerator
                         addMarshalAsString();
                         continue;
                     case "null":
+                        if (isArray && !isInsideArrayInitializer)
+                        {
+                            return;
+                        }
                         marshalAsStrings.Add(null);
+                        if (!isArray && !isInsideObjectInitializer)
+                        {
+                            return;
+                        }
                         continue;
                     case ",":
                         if (isInsideObjectInitializer)
@@ -158,7 +167,14 @@ namespace NativeGenericDelegatesGenerator
             }
             if (value is IFieldReferenceOperation fieldReference && fieldReference.Field.IsReadOnly)
             {
-                GetMarshalAsFromField(fieldReference, cancellationToken, argumentCount, diagnostics, location, marshalAsStrings);
+                GetMarshalAsFromField(fieldReference, cancellationToken, argumentCount, marshalAsStrings);
+                if (fieldReference.Field.Type is IArrayTypeSymbol && (marshalAsStrings.Count > 0))
+                {
+                    for (int count = marshalAsStrings.Count; count < argumentCount; ++count)
+                    {
+                        marshalAsStrings.Add(null);
+                    }
+                }
                 return;
             }
             IObjectCreationOperation? objectCreation = value as IObjectCreationOperation;
@@ -183,7 +199,7 @@ namespace NativeGenericDelegatesGenerator
         public static void GetMarshalAsFromOperation(IOperation value, CancellationToken cancellationToken, List<Diagnostic> diagnostics, Location location, out string? marshalAsString)
         {
             List<string?> marshalAsStrings = new(1);
-            GetMarshalAsFromOperation(value, cancellationToken, 0, diagnostics, location, marshalAsStrings);
+            GetMarshalAsFromOperation(value, cancellationToken, 1, diagnostics, location, marshalAsStrings);
             marshalAsString = marshalAsStrings.FirstOrDefault();
         }
     }

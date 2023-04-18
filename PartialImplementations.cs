@@ -188,35 +188,7 @@ namespace {Constants.RootNamespace}
 {{
     file static class MarshalInfo
     {{
-        internal static bool Equals(MarshalAsAttribute? marshalReturnAsLeft, MarshalAsAttribute?[]? marshalParamsAsLeft, MarshalAsAttribute? marshalReturnAsRight, MarshalAsAttribute?[]? marshalParamsAsRight)
-        {{
-            if (!Equals(marshalReturnAsLeft, marshalReturnAsRight))
-            {{
-                return false;
-            }}
-            if (marshalParamsAsLeft is null)
-            {{
-                return marshalParamsAsRight is null;
-            }}
-            else if (marshalParamsAsRight is null)
-            {{
-                return false;
-            }}
-            if (marshalParamsAsLeft.Length != marshalParamsAsRight.Length)
-            {{
-                return false;
-            }}
-            for (int i = 0; i < marshalParamsAsLeft.Length; ++i)
-            {{
-                if (!Equals(marshalParamsAsLeft[i], marshalParamsAsRight[i]))
-                {{
-                    return false;
-                }}
-            }}
-            return true;
-        }}
-
-        private static bool Equals(MarshalAsAttribute? left, MarshalAsAttribute? right)
+        internal static bool Equals(MarshalAsAttribute? left, MarshalAsAttribute? right)
         {{
             if (left is null)
             {{
@@ -237,6 +209,30 @@ namespace {Constants.RootNamespace}
                 left.MarshalType == right.MarshalType &&
                 left.MarshalTypeRef == right.MarshalTypeRef &&
                 left.MarshalCookie == right.MarshalCookie;
+        }}
+
+        internal static bool PartiallyEquals(MarshalAsAttribute?[]? left, MarshalAsAttribute?[]? right)
+        {{
+            if (left is null)
+            {{
+                return right is null;
+            }}
+            int i = 0;
+            for (int len = Math.Min(left.Length, right?.Length ?? 0); i < len; ++i)
+            {{
+                if (!Equals(left[i], right![i]))
+                {{
+                    return false;
+                }}
+            }}
+            for ( ; i < left.Length; ++i)
+            {{
+                if (!Equals(left[i], null))
+                {{
+                    return false;
+                }}
+            }}
+            return true;
         }}
     }}
 {ConcreteClassDefinitions}{InterfaceImplementations}}}
