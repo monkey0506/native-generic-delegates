@@ -38,22 +38,6 @@ namespace NativeGenericDelegatesGenerator
         public readonly string TypeArguments;
         public readonly bool UnmanagedTypeArgumentsOnly;
 
-        private static string GetMarshalAsAttributeString(string? value)
-        {
-            if (value is null)
-            {
-                return "null";
-            }
-            int index = value.IndexOf(',');
-            if (index == -1)
-            {
-                return $"new MarshalAsAttribute({value})";
-            }
-            string head = value.Substring(0, index);
-            string tail = value.Substring(index + 2);
-            return $"new MarshalAsAttribute({head}) {{ {tail} }}";
-        }
-
         public NativeGenericDelegateInfo(MethodSymbolWithMarshalInfo methodSymbolWithMarshalInfo, CancellationToken cancellationToken, RuntimeMarshalAsAttributeArrayCollection marshalAsArrayCollection)
         {
             IMethodSymbol methodSymbol = methodSymbolWithMarshalInfo.MethodSymbol;
