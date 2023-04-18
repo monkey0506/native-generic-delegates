@@ -42,11 +42,8 @@ namespace NativeGenericDelegatesGenerator
         public const string SourceFileName = RootNamespace + ".g.cs";
 
         public const string MarshalAsArgumentMustUseObjectCreationSyntaxID = "NGD1001";
-        public const string InvalidMarshalParamsAsArrayLengthID = "NGD1002";
         public static readonly DiagnosticDescriptor MarshalAsArgumentMustUseObjectCreationSyntaxDescriptor =
             new(MarshalAsArgumentMustUseObjectCreationSyntaxID, "Invalid MarshalAs argument", "MarshalAs argument must be null or use object creation syntax", "Usage", DiagnosticSeverity.Error, true);
-        public static readonly DiagnosticDescriptor InvalidMarshalParamsAsArrayLengthDescriptor =
-            new(InvalidMarshalParamsAsArrayLengthID, $"Invalid marshalParamsAs argument", $"marshalParamsAs argument must be array of correct length", "Usage", DiagnosticSeverity.Error, true);
 
         public static readonly string[] GenericActionTypeParameters = new[]
         {
