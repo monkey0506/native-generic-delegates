@@ -82,7 +82,9 @@ namespace {Constants.RootNamespace}
         {{
             if (callingConvention == CallingConvention.Winapi)
             {{
-                callingConvention = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? CallingConvention.StdCall : CallingConvention.Cdecl;
+                callingConvention = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                    CallingConvention.StdCall :
+                    CallingConvention.Cdecl;
             }}
             return callingConvention switch
             {{
@@ -93,11 +95,17 @@ namespace {Constants.RootNamespace}
             }};
         }}
 
-        public static INativeAction FromFunctionPointer(nint functionPtr, CallingConvention callingConvention = CallingConvention.Winapi)
+        public static INativeAction FromFunctionPointer
+        (
+            nint functionPtr,
+            CallingConvention callingConvention = CallingConvention.Winapi
+        )
         {{
             if (callingConvention == CallingConvention.Winapi)
             {{
-                callingConvention = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? CallingConvention.StdCall : CallingConvention.Cdecl;
+                callingConvention = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                    CallingConvention.StdCall :
+                    CallingConvention.Cdecl;
             }}
             return callingConvention switch
             {{
@@ -118,8 +126,10 @@ namespace {Constants.RootNamespace}
             _ = source.Append($"{PartialImplementations.BuildPartialInterfaceDeclaration(isAction: false, 0)}");
             for (int i = 1; i < 17; ++i)
             {
-                _ = source.AppendLine().AppendLine($"{PartialImplementations.BuildPartialInterfaceDeclaration(isAction: true, argumentCount: i)}");
-                _ = source.Append($"{PartialImplementations.BuildPartialInterfaceDeclaration(isAction: false, argumentCount: i)}");
+                _ = source.AppendLine().AppendLine($"{PartialImplementations
+                    .BuildPartialInterfaceDeclaration(isAction: true, argumentCount: i)}");
+                _ = source.Append($"{PartialImplementations
+                    .BuildPartialInterfaceDeclaration(isAction: false, argumentCount: i)}");
             }
             _ = source.AppendLine($@"}}
 

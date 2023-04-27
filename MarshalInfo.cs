@@ -20,7 +20,14 @@ namespace NativeGenericDelegatesGenerator
 {
     internal static class MarshalInfo
     {
-        public static ImmutableArray<string?>? GetMarshalAsCollectionFromOperation(IOperation collection, CancellationToken cancellationToken, int argumentCount, List<Diagnostic> diagnostics, Location location)
+        public static ImmutableArray<string?>? GetMarshalAsCollectionFromOperation
+        (
+            IOperation collection,
+            CancellationToken cancellationToken,
+            int argumentCount,
+            List<Diagnostic> diagnostics,
+            Location location
+        )
         {
             List<string?> marshalAsParamsStrings = new();
             if (collection is IArrayCreationOperation arrayCreation)
@@ -30,7 +37,15 @@ namespace NativeGenericDelegatesGenerator
                     foreach (var elementValue in arrayCreation.Initializer.ElementValues)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        GetMarshalAsFromOperation(elementValue, cancellationToken, argumentCount, diagnostics, location, marshalAsParamsStrings);
+                        GetMarshalAsFromOperation
+                        (
+                            elementValue,
+                            cancellationToken,
+                            argumentCount,
+                            diagnostics,
+                            location,
+                            marshalAsParamsStrings
+                        );
                         if (marshalAsParamsStrings.Count == argumentCount)
                         {
                             break;
@@ -45,22 +60,40 @@ namespace NativeGenericDelegatesGenerator
             }
             else if (!collection.ConstantValue.HasValue) // argument is not null
             {
-                if (collection is IFieldReferenceOperation fieldReference && fieldReference.Field.IsReadOnly && fieldReference.Type is IArrayTypeSymbol)
+                if (collection is IFieldReferenceOperation fieldReference && fieldReference.Field.IsReadOnly &&
+                    fieldReference.Type is IArrayTypeSymbol)
                 {
-                    GetMarshalAsFromOperation(collection, cancellationToken, argumentCount, diagnostics, location, marshalAsParamsStrings);
+                    GetMarshalAsFromOperation
+                    (
+                        collection,
+                        cancellationToken,
+                        argumentCount,
+                        diagnostics,
+                        location,
+                        marshalAsParamsStrings
+                    );
                 }
                 else
                 {
-                    diagnostics.Add(Diagnostic.Create(Constants.MarshalAsArgumentMustUseObjectCreationSyntaxDescriptor, location));
+                    diagnostics.Add(Diagnostic.Create
+                    (
+                        Constants.MarshalAsArgumentMustUseObjectCreationSyntaxDescriptor, location
+                    ));
                 }
             }
             return marshalAsParamsStrings.Count > 0 ? marshalAsParamsStrings.ToImmutableArray() : null;
         }
 
-        private static void GetMarshalAsFromField(IFieldReferenceOperation fieldReference, CancellationToken cancellationToken, int argumentCount, List<string?> marshalAsStrings)
+        private static void GetMarshalAsFromField
+        (
+            IFieldReferenceOperation fieldReference,
+            CancellationToken cancellationToken,
+            int argumentCount,
+            List<string?> marshalAsStrings
+        )
         {
-            // `GetOperation` is only returning `null` for the relevant `SyntaxNode`s here, so we have to manually parse the field initializer
-            // see <https://stackoverflow.com/q/75916082/1136311>
+            // `GetOperation` is only returning `null` for the relevant `SyntaxNode`s here, so we have to manually parse the
+            // field initializer. See <https://stackoverflow.com/q/75916082/1136311>.
             bool isArray = fieldReference.Field.Type is IArrayTypeSymbol;
             SyntaxNode fieldDeclaration = fieldReference.Field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken)!;
             StringBuilder sb = new();
@@ -158,7 +191,15 @@ namespace NativeGenericDelegatesGenerator
             addMarshalAsString();
         }
 
-        private static void GetMarshalAsFromOperation(IOperation value, CancellationToken cancellationToken, int argumentCount, List<Diagnostic> diagnostics, Location location, List<string?> marshalAsStrings)
+        private static void GetMarshalAsFromOperation
+        (
+            IOperation value,
+            CancellationToken cancellationToken,
+            int argumentCount,
+            List<Diagnostic> diagnostics,
+            Location location,
+            List<string?> marshalAsStrings
+        )
         {
             if (value.ConstantValue.HasValue) // value is null
             {
@@ -196,7 +237,14 @@ namespace NativeGenericDelegatesGenerator
             marshalAsStrings.Add(sb.ToString());
         }
 
-        public static void GetMarshalAsFromOperation(IOperation value, CancellationToken cancellationToken, List<Diagnostic> diagnostics, Location location, out string? marshalAsString)
+        public static void GetMarshalAsFromOperation
+        (
+            IOperation value,
+            CancellationToken cancellationToken,
+            List<Diagnostic> diagnostics,
+            Location location,
+            out string? marshalAsString
+        )
         {
             List<string?> marshalAsStrings = new(1);
             GetMarshalAsFromOperation(value, cancellationToken, 1, diagnostics, location, marshalAsStrings);

@@ -26,8 +26,12 @@ namespace NativeGenericDelegatesGenerator
         {
             string unmanagedCallConv = Constants.GetUnmanagedCallConv(callConv);
             string funcPtr = $"delegate* unmanaged[{unmanagedCallConv}]<{info.FunctionPointerTypeArgumentsWithReturnType}>";
-            string call = info.UnmanagedTypeArgumentsOnly ? $"{info.ReturnKeyword}(({funcPtr})_functionPtr)({info.InvokeArguments});" : $"{info.ReturnKeyword}_delegate({info.InvokeArguments});";
-            string getDelegate = info.UnmanagedTypeArgumentsOnly ? "Invoke" : $"Marshal.GetDelegateForFunctionPointer<NonGeneric{info.Identifier}>(functionPtr)";
+            string call = info.UnmanagedTypeArgumentsOnly ?
+                $"{info.ReturnKeyword}(({funcPtr})_functionPtr)({info.InvokeArguments});" :
+                $"{info.ReturnKeyword}_delegate({info.InvokeArguments});";
+            string getDelegate = info.UnmanagedTypeArgumentsOnly ?
+                "Invoke" :
+                $"Marshal.GetDelegateForFunctionPointer<NonGeneric{info.Identifier}>(functionPtr)";
             string returnMarshal = info.MarshalReturnAs is not null ? $@"
         [return: MarshalAs({info.MarshalReturnAs})]" : "";
             _ = sb.AppendLine($@"
@@ -42,7 +46,12 @@ namespace NativeGenericDelegatesGenerator
         internal {info.ClassNamePrefix}_{callConv}({info.IdentifierWithTypeArguments} _delegate)
         {{
             ArgumentNullException.ThrowIfNull(_delegate);
-            this._delegate = (NonGeneric{info.Identifier})Delegate.CreateDelegate(typeof(NonGeneric{info.Identifier}), _delegate.Target, _delegate.Method);
+            this._delegate = (NonGeneric{info.Identifier})Delegate.CreateDelegate
+            (
+                typeof(NonGeneric{info.Identifier}),
+                _delegate.Target,
+                _delegate.Method
+            );
             _functionPtr = ({funcPtr})Marshal.GetFunctionPointerForDelegate(this._delegate);
         }}
 
@@ -67,7 +76,12 @@ namespace NativeGenericDelegatesGenerator
 
         public {info.IdentifierWithTypeArguments} To{info.Identifier}()
         {{
-            return ({info.IdentifierWithTypeArguments})Delegate.CreateDelegate(typeof({info.IdentifierWithTypeArguments}), _delegate.Target, _delegate.Method);
+            return ({info.IdentifierWithTypeArguments})Delegate.CreateDelegate
+            (
+                typeof({info.IdentifierWithTypeArguments}),
+                _delegate.Target,
+                _delegate.Method
+            );
         }}
     }}");
         }
@@ -102,7 +116,10 @@ namespace NativeGenericDelegatesGenerator
             }}");
         }
 
-        private static (string FromDelegate, string FromFunctionPointer, string FromFunctionPointerGeneric) BuildTypeChecks(in NativeGenericDelegateInfo info)
+        private static (string FromDelegate, string FromFunctionPointer, string FromFunctionPointerGeneric) BuildTypeChecks
+        (
+            in NativeGenericDelegateInfo info
+        )
         {
             StringBuilder fromDelegate = new();
             StringBuilder fromFunctionPointer = new();
@@ -123,7 +140,8 @@ namespace NativeGenericDelegatesGenerator
         {
             ArgumentCount = info.TypeArgumentCount;
             ClassDefinitions = BuildClassDefinitions(in info);
-            (FromDelegateTypeCheck, FromFunctionPointerTypeCheck, FromFunctionPointerGenericTypeCheck) = BuildTypeChecks(in info);
+            (FromDelegateTypeCheck, FromFunctionPointerTypeCheck, FromFunctionPointerGenericTypeCheck) =
+                BuildTypeChecks(in info);
             IsAction = info.IsAction;
             MarshalAsArrayCollection = info.MarshalAsArrayCollection;
         }

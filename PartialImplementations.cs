@@ -39,13 +39,30 @@ namespace NativeGenericDelegatesGenerator
             string genericIdentifier = $"{identifier}<{typeParameters}>";
             string namedArguments = Constants.NamedGenericTypeArguments[argumentCount];
             string unmanagedTypeParameters = typeParameters.Replace("T", "U");
-            string marshalReturnAs = isAction ? "" : $", MarshalAsAttribute? marshalReturnAs = null";
-            string marshalReturnAsRequired = isAction ? "" : $", MarshalAsAttribute marshalReturnAs";
+            string marshalReturnAs = isAction ? "" : $@",
+            MarshalAsAttribute? marshalReturnAs = null";
+            string marshalReturnAsRequired = isAction ? "" : $@",
+            MarshalAsAttribute marshalReturnAs";
             return $@"    public partial interface INative{identifier}<{qualifiedTypeParameters}>
     {{
-        public static partial INative{genericIdentifier} From{identifier}({genericIdentifier} {identifier.ToLower()}{marshalReturnAs}, MarshalAsAttribute?[]? marshalParamsAs = null, CallingConvention callingConvention = CallingConvention.Winapi);
-        public static partial INative{genericIdentifier} FromFunctionPointer(nint functionPtr{marshalReturnAs}, MarshalAsAttribute?[]? marshalParamsAs = null, CallingConvention callingConvention = CallingConvention.Winapi);
-        public static partial INative{genericIdentifier} FromFunctionPointer<{unmanagedTypeParameters}>(nint functionPtr{marshalReturnAsRequired}, MarshalAsAttribute[] marshalParamsAs, CallingConvention callingConvention = CallingConvention.Winapi){constraints};
+        public static partial INative{genericIdentifier} From{identifier}
+        (
+            {genericIdentifier} {identifier.ToLower()}{marshalReturnAs},
+            MarshalAsAttribute?[]? marshalParamsAs = null,
+            CallingConvention callingConvention = CallingConvention.Winapi
+        );
+        public static partial INative{genericIdentifier} FromFunctionPointer
+        (
+            nint functionPtr{marshalReturnAs},
+            MarshalAsAttribute?[]? marshalParamsAs = null,
+            CallingConvention callingConvention = CallingConvention.Winapi
+        );
+        public static partial INative{genericIdentifier} FromFunctionPointer<{unmanagedTypeParameters}>
+        (
+            nint functionPtr{marshalReturnAsRequired},
+            MarshalAsAttribute[] marshalParamsAs,
+            CallingConvention callingConvention = CallingConvention.Winapi
+        ){constraints};
 
         public nint GetFunctionPointer();
         public {returnType} Invoke({namedArguments});
@@ -54,7 +71,14 @@ namespace NativeGenericDelegatesGenerator
 ";
         }
 
-        public static string BuildPartialInterfaceImplementation(bool isAction, int argumentCount, StringBuilder fromDelegate, StringBuilder fromFunctionPointer, StringBuilder fromFunctionPointerGeneric)
+        public static string BuildPartialInterfaceImplementation
+        (
+            bool isAction,
+            int argumentCount,
+            StringBuilder fromDelegate,
+            StringBuilder fromFunctionPointer,
+            StringBuilder fromFunctionPointerGeneric
+        )
         {
             string constraints = Constants.UnmanagedGenericActionTypeConstraints[argumentCount];
             string identifier = Constants.ActionIdentifier;
@@ -69,21 +93,38 @@ namespace NativeGenericDelegatesGenerator
             }
             string genericIdentifier = $"{identifier}<{typeParameters}>";
             string unmanagedTypeParameters = typeParameters.Replace('T', 'U');
-            string marshalReturnAs = isAction ? "" : $", MarshalAsAttribute? marshalReturnAs";
-            string marshalReturnAsRequired = isAction ? "" : $", MarshalAsAttribute marshalReturnAs";
+            string marshalReturnAs = isAction ? "" : $@",
+            MarshalAsAttribute? marshalReturnAs";
+            string marshalReturnAsRequired = isAction ? "" : $@",
+            MarshalAsAttribute marshalReturnAs";
             return $@"    public partial interface INative{identifier}<{qualifiedTypeParameters}>
     {{
-        public static partial INative{genericIdentifier} From{identifier}({genericIdentifier} _delegate{marshalReturnAs}, MarshalAsAttribute?[]? marshalParamsAs, CallingConvention callingConvention)
+        public static partial INative{genericIdentifier} From{identifier}
+        (
+            {genericIdentifier} _delegate{marshalReturnAs},
+            MarshalAsAttribute?[]? marshalParamsAs,
+            CallingConvention callingConvention
+        )
         {{
             {fromDelegate}
         }}
 
-        public static partial INative{genericIdentifier} FromFunctionPointer(nint functionPtr{marshalReturnAs}, MarshalAsAttribute?[]? marshalParamsAs, CallingConvention callingConvention)
+        public static partial INative{genericIdentifier} FromFunctionPointer
+        (
+            nint functionPtr{marshalReturnAs},
+            MarshalAsAttribute?[]? marshalParamsAs,
+            CallingConvention callingConvention
+        )
         {{
             {fromFunctionPointer}
         }}
 
-        public static partial INative{genericIdentifier} FromFunctionPointer<{unmanagedTypeParameters}>(nint functionPtr{marshalReturnAsRequired}, MarshalAsAttribute[] marshalParamsAs, CallingConvention callingConvention){constraints}
+        public static partial INative{genericIdentifier} FromFunctionPointer<{unmanagedTypeParameters}>
+        (
+            nint functionPtr{marshalReturnAsRequired},
+            MarshalAsAttribute[] marshalParamsAs,
+            CallingConvention callingConvention
+        ){constraints}
         {{
             {fromFunctionPointerGeneric}
         }}
@@ -95,12 +136,18 @@ namespace NativeGenericDelegatesGenerator
         {
             sb ??= new StringBuilder($@"if (callingConvention == CallingConvention.Winapi)
             {{
-                callingConvention = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? CallingConvention.StdCall : CallingConvention.Cdecl;
+                callingConvention = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                    CallingConvention.StdCall :
+                    CallingConvention.Cdecl;
             }}").AppendLine();
             _ = sb.Append(typeCheck);
         }
 
-        public PartialImplementations(SourceProductionContext context, ImmutableArray<NativeGenericDelegateConcreteClassInfo> infos)
+        public PartialImplementations
+        (
+            SourceProductionContext context,
+            ImmutableArray<NativeGenericDelegateConcreteClassInfo> infos
+        )
         {
             StringBuilder classes = new();
             StringBuilder[] fromAction = new StringBuilder[16];
@@ -141,14 +188,18 @@ namespace NativeGenericDelegatesGenerator
             {
                 fromAction[i] = fromAction[i]?.Append(notImplementedFallthrough) ?? notImplementedType;
                 fromFunc[i] = fromFunc[i]?.Append(notImplementedFallthrough) ?? notImplementedType;
-                fromFunctionPointerAction[i] = fromFunctionPointerAction[i]?.Append(notImplementedFallthrough) ?? notImplementedType;
+                fromFunctionPointerAction[i] = fromFunctionPointerAction[i]?.Append(notImplementedFallthrough) ??
+                    notImplementedType;
                 fromFunctionPointerFunc[i] = fromFunctionPointerFunc[i]?.Append(notImplementedFallthrough) ?? notImplementedType;
-                fromFunctionPointerActionGeneric[i] = fromFunctionPointerActionGeneric[i]?.Append(notImplementedFallthrough) ?? notImplementedType;
-                fromFunctionPointerFuncGeneric[i] = fromFunctionPointerFuncGeneric[i]?.Append(notImplementedFallthrough) ?? notImplementedType;
+                fromFunctionPointerActionGeneric[i] = fromFunctionPointerActionGeneric[i]?.Append(notImplementedFallthrough) ??
+                    notImplementedType;
+                fromFunctionPointerFuncGeneric[i] = fromFunctionPointerFuncGeneric[i]?.Append(notImplementedFallthrough) ??
+                    notImplementedType;
             }
             fromFunc[16] = fromFunc[16]?.Append(notImplementedFallthrough) ?? notImplementedType;
             fromFunctionPointerFunc[16] = fromFunctionPointerFunc[16]?.Append(notImplementedFallthrough) ?? notImplementedType;
-            fromFunctionPointerFuncGeneric[16] = fromFunctionPointerFuncGeneric[16]?.Append(notImplementedFallthrough) ?? notImplementedType;
+            fromFunctionPointerFuncGeneric[16] = fromFunctionPointerFuncGeneric[16]?.Append(notImplementedFallthrough) ??
+                notImplementedType;
             StringBuilder partialImplementations = new();
             var unimplementedActions = Enumerable.Range(1, 16).ToList();
             var unimplementedFuncs = Enumerable.Range(0, 17).ToList();
@@ -160,21 +211,49 @@ namespace NativeGenericDelegatesGenerator
                 {
                     if (unimplementedActions.Remove(info.ArgumentCount))
                     {
-                        partialImplementations.AppendLine().Append(BuildPartialInterfaceImplementation(info.IsAction, info.ArgumentCount, fromAction[index], fromFunctionPointerAction[index], fromFunctionPointerActionGeneric[index]));
+                        partialImplementations.AppendLine().Append(BuildPartialInterfaceImplementation
+                        (
+                            info.IsAction,
+                            info.ArgumentCount,
+                            fromAction[index],
+                            fromFunctionPointerAction[index],
+                            fromFunctionPointerActionGeneric[index]
+                        ));
                     }
                 }
                 else if (unimplementedFuncs.Remove(info.ArgumentCount))
                 {
-                    partialImplementations.AppendLine().Append(BuildPartialInterfaceImplementation(info.IsAction, info.ArgumentCount, fromFunc[index], fromFunctionPointerFunc[index], fromFunctionPointerFuncGeneric[index]));
+                    partialImplementations.AppendLine().Append(BuildPartialInterfaceImplementation
+                    (
+                        info.IsAction,
+                        info.ArgumentCount,
+                        fromFunc[index],
+                        fromFunctionPointerFunc[index],
+                        fromFunctionPointerFuncGeneric[index]
+                    ));
                 }
             }
             foreach (var actionArgumentCount in unimplementedActions)
             {
-                partialImplementations.AppendLine().Append(BuildPartialInterfaceImplementation(isAction: true, actionArgumentCount, notImplementedType, notImplementedType, notImplementedType));
+                partialImplementations.AppendLine().Append(BuildPartialInterfaceImplementation
+                (
+                    isAction: true,
+                    actionArgumentCount,
+                    notImplementedType,
+                    notImplementedType,
+                    notImplementedType
+                ));
             }
             foreach (var funcArgumentCount in unimplementedFuncs)
             {
-                partialImplementations.AppendLine().Append(BuildPartialInterfaceImplementation(isAction: false, funcArgumentCount, notImplementedType, notImplementedType, notImplementedType));
+                partialImplementations.AppendLine().Append(BuildPartialInterfaceImplementation
+                (
+                    isAction: false,
+                    funcArgumentCount,
+                    notImplementedType,
+                    notImplementedType,
+                    notImplementedType
+                ));
             }
             ConcreteClassDefinitions = classes.ToString();
             InterfaceImplementations = partialImplementations.ToString();

@@ -38,7 +38,12 @@ namespace NativeGenericDelegatesGenerator
         public readonly string TypeArguments;
         public readonly bool UnmanagedTypeArgumentsOnly;
 
-        public NativeGenericDelegateInfo(MethodSymbolWithMarshalInfo methodSymbolWithMarshalInfo, CancellationToken cancellationToken, RuntimeMarshalAsAttributeArrayCollection marshalAsArrayCollection)
+        public NativeGenericDelegateInfo
+        (
+            MethodSymbolWithMarshalInfo methodSymbolWithMarshalInfo,
+            CancellationToken cancellationToken,
+            RuntimeMarshalAsAttributeArrayCollection marshalAsArrayCollection
+        )
         {
             IMethodSymbol methodSymbol = methodSymbolWithMarshalInfo.MethodSymbol;
             INamedTypeSymbol interfaceSymbol = methodSymbol.ContainingType;
@@ -46,11 +51,14 @@ namespace NativeGenericDelegatesGenerator
             string identifier = isAction ? Constants.ActionIdentifier : Constants.FuncIdentifier;
             int typeArgumentCount = interfaceSymbol.Arity - (isAction ? 0 : 1);
             IEnumerable<int> range = Enumerable.Range(0, typeArgumentCount);
-            ImmutableArray<string> typeArgumentsWithReturnType = interfaceSymbol.TypeArguments.Select(x => x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)).ToImmutableArray();
+            ImmutableArray<string> typeArgumentsWithReturnType = interfaceSymbol.TypeArguments
+                .Select(x => x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)).ToImmutableArray();
             ImmutableArray<string> marshalParamsAs = range.Select
             (
-                x => methodSymbolWithMarshalInfo.MarshalParamsAs is not null && methodSymbolWithMarshalInfo.MarshalParamsAs.Value[x] is not null ?
-                    $"[MarshalAs({methodSymbolWithMarshalInfo.MarshalParamsAs.Value[x]})] " : ""
+                x => methodSymbolWithMarshalInfo.MarshalParamsAs is not null &&
+                methodSymbolWithMarshalInfo.MarshalParamsAs.Value[x] is not null ?
+                    $"[MarshalAs({methodSymbolWithMarshalInfo.MarshalParamsAs.Value[x]})] " :
+                    ""
             ).ToImmutableArray();
             ImmutableArray<string> typeParameters = interfaceSymbol.TypeParameters.Select(x => x.ToString()).ToImmutableArray();
             cancellationToken.ThrowIfCancellationRequested();
@@ -65,15 +73,19 @@ namespace NativeGenericDelegatesGenerator
             IsFromFunctionPointerGeneric = methodSymbol.IsGenericMethod;
             MarshalAsArrayCollection = marshalAsArrayCollection;
             MarshalReturnAs = methodSymbolWithMarshalInfo.MarshalReturnAs;
-            NamedArguments = string.Join(", ", range.Select(x => $"{marshalParamsAs[x]}{typeArgumentsWithReturnType[x]} _{x + 1}"));
+            NamedArguments = string.Join
+            (
+                ", ",
+                range.Select(x => $"{marshalParamsAs[x]}{typeArgumentsWithReturnType[x]} _{x + 1}")
+            );
             ReturnKeyword = isAction ? "" : "return ";
             TypeArgumentCount = typeArgumentCount;
             TypeArguments = string.Join(", ", typeArgumentsWithReturnType.Take(typeArgumentCount));
             UnmanagedTypeArgumentsOnly = interfaceSymbol.TypeArguments.All(x => x.IsUnmanagedType);
             cancellationToken.ThrowIfCancellationRequested();
-            int marshalReturnAsIndex = marshalAsArrayCollection.MarshalAsAttributeCollection.AddOrLookup(methodSymbolWithMarshalInfo.MarshalReturnAs);
+            int marshalReturnAsIndex = marshalAsArrayCollection.MarshalAsAttributeCollection
+                .AddOrLookup(methodSymbolWithMarshalInfo.MarshalReturnAs);
             int marshalParamsAsIndex = marshalAsArrayCollection.AddOrLookup(methodSymbolWithMarshalInfo.MarshalParamsAs);
-
             string andNewLine = $@" &&
                 ";
             cancellationToken.ThrowIfCancellationRequested();
@@ -88,8 +100,10 @@ namespace NativeGenericDelegatesGenerator
             }
             if (methodSymbol.IsGenericMethod)
             {
-                typeArgumentsWithReturnType = methodSymbol.TypeArguments.Select(x => x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)).ToImmutableArray();
-                FunctionPointerTypeArgumentsWithReturnType = $"{string.Join(", ", typeArgumentsWithReturnType)}{(isAction ? ", void" : "")}";
+                typeArgumentsWithReturnType = methodSymbol.TypeArguments
+                    .Select(x => x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)).ToImmutableArray();
+                FunctionPointerTypeArgumentsWithReturnType =
+                    $"{string.Join(", ", typeArgumentsWithReturnType)}{(isAction ? ", void" : "")}";
                 _ = sb.Append(andNewLine);
                 for (int i = 0; i < methodSymbol.Arity; ++i)
                 {
@@ -105,8 +119,14 @@ namespace NativeGenericDelegatesGenerator
                 FunctionPointerTypeArgumentsWithReturnType += ", void";
             }
             cancellationToken.ThrowIfCancellationRequested();
-            _ = sb.Append(andNewLine).Append($"MarshalInfo.Equals({(isAction ? "null" : "marshalReturnAs")}, MarshalInfo.Attributes[{marshalReturnAsIndex}])")
-                .Append(andNewLine).Append($"MarshalInfo.PartiallyEquals(marshalParamsAs, MarshalInfo.AttributeArrays[{marshalParamsAsIndex}])");
+            _ = sb.Append(andNewLine).Append
+            (
+                $"MarshalInfo.Equals({(isAction ? "null" : "marshalReturnAs")}, " +
+                $"MarshalInfo.Attributes[{marshalReturnAsIndex}])"
+            ).Append(andNewLine).Append
+            (
+                $"MarshalInfo.PartiallyEquals(marshalParamsAs, MarshalInfo.AttributeArrays[{marshalParamsAsIndex}])"
+            );
             TypeArgumentCheckWithMarshalInfoCondition = sb.ToString();
         }
     }

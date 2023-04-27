@@ -40,7 +40,8 @@ namespace NativeGenericDelegatesGenerator
                 if (node is InvocationExpressionSyntax)
                 {
                     string s = node.ToString();
-                    if (s.StartsWith(Constants.INativeActionGenericIdentifier) || s.StartsWith(Constants.INativeFuncGenericIdentifier))
+                    if (s.StartsWith(Constants.INativeActionGenericIdentifier) ||
+                        s.StartsWith(Constants.INativeFuncGenericIdentifier))
                     {
                         return true;
                     }
@@ -48,8 +49,14 @@ namespace NativeGenericDelegatesGenerator
                 return false;
             },
             static (context, _) => context).Collect().SelectMany(MethodSymbolWithContext.GetSymbols);
-            var methodSymbolsWithMarshalAndDiagnosticInfo = methodSymbolsWithContext.Select(MethodSymbolWithMarshalAndDiagnosticInfo.GetSymbol);
-            var diagnostics = methodSymbolsWithMarshalAndDiagnosticInfo.Where(static x => x.Diagnostics is not null).Select(static (x, _) => x.Diagnostics);
+            var methodSymbolsWithMarshalAndDiagnosticInfo = methodSymbolsWithContext.Select
+            (
+                MethodSymbolWithMarshalAndDiagnosticInfo.GetSymbol
+            );
+            var diagnostics = methodSymbolsWithMarshalAndDiagnosticInfo.Where(static x => x.Diagnostics is not null).Select
+            (
+                static (x, _) => x.Diagnostics
+            );
             initContext.RegisterSourceOutput(diagnostics, static (source, diagnostics) =>
             {
                 foreach (var diagnostic in diagnostics!)
@@ -57,7 +64,8 @@ namespace NativeGenericDelegatesGenerator
                     source.ReportDiagnostic(diagnostic);
                 }
             });
-            var methodSymbolsWithMarshalInfo = methodSymbolsWithMarshalAndDiagnosticInfo.Where(static x => x.Diagnostics is null).Collect().SelectMany(static (symbolsWithMarshalInfo, cancellationToken) =>
+            var methodSymbolsWithMarshalInfo = methodSymbolsWithMarshalAndDiagnosticInfo.Where(static x => x.Diagnostics is null)
+                .Collect().SelectMany(static (symbolsWithMarshalInfo, cancellationToken) =>
             {
                 // this hash set will ensure each combination of a method symbol and marshaling behavior are unique
                 // if the method is the generic FromFunctionPointer then the IMethodSymbol is used for comparison, otherwise the
@@ -70,15 +78,20 @@ namespace NativeGenericDelegatesGenerator
                 }
                 return infoSet.ToImmutableArray();
             });
-            var infos = methodSymbolsWithMarshalInfo.Collect().SelectMany(static (methodSymbolsWithMarshalInfo, cancellationToken) =>
+            var infos = methodSymbolsWithMarshalInfo.Collect()
+                .SelectMany(static (methodSymbolsWithMarshalInfo, cancellationToken) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 List<NativeGenericDelegateInfo> nativeGenericDelegateInfos = new(methodSymbolsWithMarshalInfo.Length);
-                RuntimeMarshalAsAttributeArrayCollection marshalAsArrayCollection = new(new RuntimeMarshalAsAttributeCollection());
+                RuntimeMarshalAsAttributeArrayCollection marshalAsArrayCollection =
+                    new(new RuntimeMarshalAsAttributeCollection());
                 foreach (var methodSymbolWithMarshalInfo in methodSymbolsWithMarshalInfo)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    nativeGenericDelegateInfos.Add(new(methodSymbolWithMarshalInfo, cancellationToken, marshalAsArrayCollection));
+                    nativeGenericDelegateInfos.Add
+                    (
+                        new(methodSymbolWithMarshalInfo, cancellationToken, marshalAsArrayCollection)
+                    );
                 }
                 return nativeGenericDelegateInfos.ToImmutableArray();
             }).Select(static (info, cancellationToken) =>
@@ -86,7 +99,8 @@ namespace NativeGenericDelegatesGenerator
                 cancellationToken.ThrowIfCancellationRequested();
                 return new NativeGenericDelegateConcreteClassInfo(in info);
             }).Collect();
-            initContext.RegisterPostInitializationOutput(static (context) => context.AddSource(Constants.DeclarationsSourceFileName, PostInitialization.GetSource()));
+            initContext.RegisterPostInitializationOutput(static (context) =>
+                context.AddSource(Constants.DeclarationsSourceFileName, PostInitialization.GetSource()));
             initContext.RegisterSourceOutput(infos, static (context, infos) =>
             {
                 PartialImplementations partialImplementations = new(context, infos);

@@ -26,9 +26,14 @@ namespace NativeGenericDelegatesGenerator
         public string? MarshalReturnAs => methodSymbolWithMarshalInfo.MarshalReturnAs;
         public IMethodSymbol MethodSymbol => methodSymbolWithMarshalInfo.MethodSymbol;
 
-        public static implicit operator MethodSymbolWithMarshalInfo(MethodSymbolWithMarshalAndDiagnosticInfo info) => info.methodSymbolWithMarshalInfo;
+        public static implicit operator MethodSymbolWithMarshalInfo(MethodSymbolWithMarshalAndDiagnosticInfo info) =>
+            info.methodSymbolWithMarshalInfo;
 
-        public static MethodSymbolWithMarshalAndDiagnosticInfo GetSymbol(MethodSymbolWithContext methodSymbolWithContext, CancellationToken cancellationToken)
+        public static MethodSymbolWithMarshalAndDiagnosticInfo GetSymbol
+        (
+            MethodSymbolWithContext methodSymbolWithContext,
+            CancellationToken cancellationToken
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
             var context = methodSymbolWithContext.Context;
@@ -56,16 +61,42 @@ namespace NativeGenericDelegatesGenerator
             Location location = context.Node.GetLocation();
             if (marshalReturnAsArgument is not null)
             {
-                MarshalInfo.GetMarshalAsFromOperation(marshalReturnAsArgument.Value, cancellationToken, diagnostics, location, out marshalReturnAsString);
+                MarshalInfo.GetMarshalAsFromOperation
+                (
+                    marshalReturnAsArgument.Value,
+                    cancellationToken,
+                    diagnostics,
+                    location,
+                    out marshalReturnAsString
+                );
             }
             if (marshalParamsAsArgument is not null)
             {
-                marshalParamsAsStrings = MarshalInfo.GetMarshalAsCollectionFromOperation(marshalParamsAsArgument.Value, cancellationToken, methodSymbol.ContainingType!.Arity - (methodSymbolWithContext.IsAction ? 0 : 1), diagnostics, location);
+                marshalParamsAsStrings = MarshalInfo.GetMarshalAsCollectionFromOperation
+                (
+                    marshalParamsAsArgument.Value,
+                    cancellationToken,
+                    methodSymbol.ContainingType!.Arity - (methodSymbolWithContext.IsAction ? 0 : 1),
+                    diagnostics,
+                    location
+                );
             }
-            return new MethodSymbolWithMarshalAndDiagnosticInfo(methodSymbol, marshalReturnAsString, marshalParamsAsStrings, diagnostics.Count > 0 ? diagnostics.ToImmutableArray() : null);
+            return new MethodSymbolWithMarshalAndDiagnosticInfo
+            (
+                methodSymbol,
+                marshalReturnAsString,
+                marshalParamsAsStrings,
+                diagnostics.Count > 0 ? diagnostics.ToImmutableArray() : null
+            );
         }
 
-        public MethodSymbolWithMarshalAndDiagnosticInfo(IMethodSymbol methodSymbol, string? marshalReturnAs, ImmutableArray<string?>? marshalParamsAs, ImmutableArray<Diagnostic>? diagnostics)
+        public MethodSymbolWithMarshalAndDiagnosticInfo
+        (
+            IMethodSymbol methodSymbol,
+            string? marshalReturnAs,
+            ImmutableArray<string?>? marshalParamsAs,
+            ImmutableArray<Diagnostic>? diagnostics
+        )
         {
             Diagnostics = diagnostics;
             methodSymbolWithMarshalInfo = new(methodSymbol, marshalReturnAs, marshalParamsAs);
