@@ -9,11 +9,26 @@
 // required.
 
 using Microsoft.CodeAnalysis;
-using System.Collections.Immutable;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace NativeGenericDelegatesGenerator
 {
+    /// <summary>
+    /// Represents an <see cref="IMethodSymbol"/> (see <see cref="MethodSymbolWithContext"/>) with custom marshaling behavior.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This type represents a method symbol and custom marshaling behaviors that may or may not be unique, but is suitable for
+    /// equality comparisons and hashing operations (e.g., use in a <see cref="HashSet{T}"/>). Equality and hashing combine an
+    /// <see cref="ISymbol"/> (either <see cref="MethodSymbol"/> or the <see cref="INamedTypeSymbol"/> representing the
+    /// containing interface) with the custom marshaling behavior. The <see cref="ISymbol"/> is always compared using <see
+    /// cref="SymbolEqualityComparer.Default"/>. If <see cref="MethodSymbol"/> represents a generic overload of
+    /// <c>FromFunctionPointer</c> (e.g., <c>INativeAction&lt;string&gt;.FromFunctionPointer&lt;nint&gt;</c>), then equality and
+    /// hashing is performed using <see cref="MethodSymbol"/>; otherwise, the <see cref="INamedTypeSymbol"/> is used.
+    /// </para>
+    /// </remarks>
     internal readonly struct MethodSymbolWithMarshalInfo : IEquatable<MethodSymbolWithMarshalInfo>
     {
         private readonly int Hash;

@@ -12,6 +12,9 @@ using System.Text;
 
 namespace NativeGenericDelegatesGenerator
 {
+    /// <summary>
+    /// Represents the native generic delegate sources that will be added after the source generator has been initialized.
+    /// </summary>
     internal static class PostInitialization
     {
         private static void BuildNativeAction(StringBuilder sb, string callConv)

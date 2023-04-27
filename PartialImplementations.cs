@@ -15,6 +15,10 @@ using System.Text;
 
 namespace NativeGenericDelegatesGenerator
 {
+    /// <summary>
+    /// Represents the partial interface implementations for native generic delegates and the concrete class definitions which
+    /// implement those interfaces.
+    /// </summary>
     internal readonly struct PartialImplementations
     {
         public readonly string ConcreteClassDefinitions;

@@ -1,9 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace NativeGenericDelegatesGenerator
 {
+    /// <summary>
+    /// Represents a unique set of <see cref="MarshalAsAttribute"/> arrays at runtime.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This class generates source that will represent the attribute arrays at runtime. These arrays are then used at runtime
+    /// for the type comparisons required to create a native generic delegate. These arrays are populated using a <see
+    /// cref="RuntimeMarshalAsAttributeCollection"/>.
+    /// </para>
+    /// </remarks>
     internal sealed class RuntimeMarshalAsAttributeArrayCollection
     {
         private readonly Dictionary<int, string> attributes = new();

@@ -17,6 +17,11 @@ using System.Threading;
 
 namespace NativeGenericDelegatesGenerator
 {
+    /// <summary>
+    /// Represents an <see cref="IMethodSymbol"/> (representing a native generic delegate method, such as
+    /// <c>INativeAction.FromAction</c>) paired with a <see cref="GeneratorSyntaxContext"/> (representing the method invocation
+    /// site in user code).
+    /// </summary>
     internal readonly struct MethodSymbolWithContext
     {
         public readonly GeneratorSyntaxContext Context;

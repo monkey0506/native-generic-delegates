@@ -18,6 +18,9 @@ using System;
 
 namespace NativeGenericDelegatesGenerator
 {
+    /// <summary>
+    /// Represents basic information about a native generic delegate signature, including custom marshaling behaviors.
+    /// </summary>
     internal readonly struct NativeGenericDelegateInfo
     {
         public readonly string ClassNamePrefix;

@@ -18,6 +18,16 @@ using System.Threading;
 
 namespace NativeGenericDelegatesGenerator
 {
+    /// <summary>
+    /// Represents an <see cref="IMethodSymbol"/> (see <see cref="MethodSymbolWithContext"/>) with parsed custom marshaling
+    /// behavior or a <see cref="Diagnostic"/> reporting the parsing error.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// If <see cref="Diagnostics"/> is not <see langword="null"/>, the other members of this object should not be considered as
+    /// valid, and they will not be used during source generation.
+    /// </para>
+    /// </remarks>
     internal readonly struct MethodSymbolWithMarshalAndDiagnosticInfo
     {
         public readonly ImmutableArray<Diagnostic>? Diagnostics;

@@ -12,6 +12,10 @@ using System.Text;
 
 namespace NativeGenericDelegatesGenerator
 {
+    /// <summary>
+    /// Represents a set of concrete classes that produce a native generic delegate with a unique signature, including custom
+    /// marshaling behaviors and calling conventions.
+    /// </summary>
     internal readonly struct NativeGenericDelegateConcreteClassInfo
     {
         public readonly int ArgumentCount;
