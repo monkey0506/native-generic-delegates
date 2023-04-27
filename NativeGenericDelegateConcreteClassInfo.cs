@@ -20,6 +20,7 @@ namespace NativeGenericDelegatesGenerator
         public readonly string FromFunctionPointerTypeCheck;
         public readonly string FromFunctionPointerGenericTypeCheck;
         public readonly bool IsAction;
+        public readonly RuntimeMarshalAsAttributeArrayCollection MarshalAsArrayCollection;
 
         private static void BuildClassDefinition(StringBuilder sb, in NativeGenericDelegateInfo info, string callConv)
         {
@@ -124,6 +125,7 @@ namespace NativeGenericDelegatesGenerator
             ClassDefinitions = BuildClassDefinitions(in info);
             (FromDelegateTypeCheck, FromFunctionPointerTypeCheck, FromFunctionPointerGenericTypeCheck) = BuildTypeChecks(in info);
             IsAction = info.IsAction;
+            MarshalAsArrayCollection = info.MarshalAsArrayCollection;
         }
     }
 }

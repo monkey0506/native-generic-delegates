@@ -19,6 +19,7 @@ namespace NativeGenericDelegatesGenerator
     {
         public readonly string ConcreteClassDefinitions;
         public readonly string InterfaceImplementations;
+        public readonly RuntimeMarshalAsAttributeArrayCollection MarshalAsArrayCollection;
 
         public static string BuildPartialInterfaceDeclaration(bool isAction, int argumentCount)
         {
@@ -110,6 +111,14 @@ namespace NativeGenericDelegatesGenerator
             StringBuilder[] fromFunctionPointerFuncGeneric = new StringBuilder[17];
             StringBuilder notImplementedType = new("throw new NotImplementedException();");
             string notImplementedFallthrough = $"            {notImplementedType}";
+            if (infos.Length > 0)
+            {
+                MarshalAsArrayCollection = infos[0].MarshalAsArrayCollection;
+            }
+            else
+            {
+                MarshalAsArrayCollection = new(new RuntimeMarshalAsAttributeCollection());
+            }
             foreach (var info in infos)
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
@@ -188,6 +197,10 @@ namespace {Constants.RootNamespace}
 {{
     file static class MarshalInfo
     {{
+        internal static readonly MarshalAsAttribute?[] Attributes = {MarshalAsArrayCollection.MarshalAsAttributeCollection.ToRuntimeString()};
+
+        internal static readonly MarshalAsAttribute?[]?[] AttributeArrays = {MarshalAsArrayCollection.ToRuntimeString()};
+
         internal static bool Equals(MarshalAsAttribute? left, MarshalAsAttribute? right)
         {{
             if (left is null)

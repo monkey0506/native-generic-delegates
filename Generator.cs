@@ -70,10 +70,17 @@ namespace NativeGenericDelegatesGenerator
                 }
                 return infoSet.ToImmutableArray();
             });
-            var infos = methodSymbolsWithMarshalInfo.Select(static (methodSymbolWithMarshalInfo, cancellationToken) =>
+            var infos = methodSymbolsWithMarshalInfo.Collect().SelectMany(static (methodSymbolsWithMarshalInfo, cancellationToken) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                return new NativeGenericDelegateInfo(methodSymbolWithMarshalInfo, cancellationToken);
+                List<NativeGenericDelegateInfo> nativeGenericDelegateInfos = new(methodSymbolsWithMarshalInfo.Length);
+                RuntimeMarshalAsAttributeArrayCollection marshalAsArrayCollection = new(new RuntimeMarshalAsAttributeCollection());
+                foreach (var methodSymbolWithMarshalInfo in methodSymbolsWithMarshalInfo)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    nativeGenericDelegateInfos.Add(new(methodSymbolWithMarshalInfo, cancellationToken, marshalAsArrayCollection));
+                }
+                return nativeGenericDelegateInfos.ToImmutableArray();
             }).Select(static (info, cancellationToken) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
