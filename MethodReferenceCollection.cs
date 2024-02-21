@@ -17,22 +17,22 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public static IncrementalValueProvider<(MethodReferenceCollection, IReadOnlyList<Diagnostic>)> GetReferencesOrDiagnostics
         (
-            IncrementalValueProvider<InterfaceReferenceCollection> interfaceReferences
+            IncrementalValueProvider<InterfaceOrMethodReferenceCollection> references
         )
         {
-            return interfaceReferences.Select(static (interfaceReferences, cancellationToken) =>
+            return references.Select(static (references, cancellationToken) =>
             {
-                HashSet<MethodReference> references = [];
+                HashSet<MethodReference> methodReferences = [];
                 List<Diagnostic> diagnostics = [];
-                foreach (var reference in interfaceReferences)
+                foreach (var reference in references)
                 {
                     var methodReference = MethodReference.GetReference(reference, diagnostics, cancellationToken);
                     if (methodReference is not null)
                     {
-                        _ = references.Add(methodReference.Value);
+                        _ = methodReferences.Add(methodReference.Value);
                     }
                 }
-                return (new MethodReferenceCollection(references), (IReadOnlyList<Diagnostic>)diagnostics.AsReadOnly());
+                return (new MethodReferenceCollection(methodReferences), (IReadOnlyList<Diagnostic>)diagnostics.AsReadOnly());
             });
         }
 

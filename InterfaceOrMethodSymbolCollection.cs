@@ -8,26 +8,30 @@ using System.Threading;
 
 namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 {
-    internal readonly struct InterfaceSymbolCollection : IEquatable<InterfaceSymbolCollection>, IEnumerable<ISymbol>
+    internal readonly struct InterfaceOrMethodSymbolCollection :
+        IEquatable<InterfaceOrMethodSymbolCollection>,
+        IEnumerable<ISymbol>
     {
         private readonly int hashCode;
         private readonly ImmutableList<ISymbol> symbols;
 
-        public static bool operator ==(InterfaceSymbolCollection left, InterfaceSymbolCollection right) => left.Equals(right);
-        public static bool operator !=(InterfaceSymbolCollection left, InterfaceSymbolCollection right) => !(left == right);
+        public static bool operator ==(InterfaceOrMethodSymbolCollection left, InterfaceOrMethodSymbolCollection right) =>
+            left.Equals(right);
+        public static bool operator !=(InterfaceOrMethodSymbolCollection left, InterfaceOrMethodSymbolCollection right) =>
+            !(left == right);
 
-        public static IncrementalValueProvider<InterfaceSymbolCollection> GetSymbols
+        public static IncrementalValueProvider<InterfaceOrMethodSymbolCollection> GetSymbols
         (
             IncrementalValueProvider<Compilation> compilationProvider
         )
         {
             return compilationProvider.Select
             (
-                static (compilation, cancellationToken) => new InterfaceSymbolCollection(compilation, cancellationToken)
+                static (compilation, cancellationToken) => new InterfaceOrMethodSymbolCollection(compilation, cancellationToken)
             );
         }
 
-        public InterfaceSymbolCollection(Compilation compilation, CancellationToken cancellationToken)
+        public InterfaceOrMethodSymbolCollection(Compilation compilation, CancellationToken cancellationToken)
         {
             var list = new List<ISymbol>(Constants.InterfaceAndGenericMethodSymbolCount);
             for (int i = 0; i < Constants.InterfaceSymbolCountPerKind; ++i)
@@ -54,10 +58,10 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public override bool Equals(object obj)
         {
-            return obj is InterfaceSymbolCollection other && Equals(other);
+            return obj is InterfaceOrMethodSymbolCollection other && Equals(other);
         }
 
-        public bool Equals(InterfaceSymbolCollection other)
+        public bool Equals(InterfaceOrMethodSymbolCollection other)
         {
             if (symbols.Count != other.symbols.Count)
             {

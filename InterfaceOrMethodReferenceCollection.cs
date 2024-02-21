@@ -7,22 +7,22 @@ using System.Collections.Immutable;
 
 namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 {
-    internal readonly struct InterfaceReferenceCollection :
-        IEquatable<InterfaceReferenceCollection>,
+    internal readonly struct InterfaceOrMethodReferenceCollection :
+        IEquatable<InterfaceOrMethodReferenceCollection>,
         IEnumerable<GenericSymbolReference>
     {
         private readonly int hashCode;
         private readonly ImmutableHashSet<GenericSymbolReference> references;
 
-        public static bool operator ==(InterfaceReferenceCollection left, InterfaceReferenceCollection right) =>
+        public static bool operator ==(InterfaceOrMethodReferenceCollection left, InterfaceOrMethodReferenceCollection right) =>
             left.Equals(right);
-        public static bool operator !=(InterfaceReferenceCollection left, InterfaceReferenceCollection right) =>
+        public static bool operator !=(InterfaceOrMethodReferenceCollection left, InterfaceOrMethodReferenceCollection right) =>
             !(left == right);
 
-        public static IncrementalValueProvider<InterfaceReferenceCollection> GetReferences
+        public static IncrementalValueProvider<InterfaceOrMethodReferenceCollection> GetReferences
         (
             IncrementalGeneratorInitializationContext context,
-            IncrementalValueProvider<InterfaceSymbolCollection> symbolsProvider
+            IncrementalValueProvider<InterfaceOrMethodSymbolCollection> symbolsProvider
         )
         {
             var treeProvider = GenericSymbolReferenceTree.FromIncrementalGeneratorInitializationContext(context);
@@ -36,11 +36,11 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                     cancellationToken.ThrowIfCancellationRequested();
                     references.UnionWith(tree.GetBranchesBySymbol(symbol, cancellationToken));
                 }
-                return new InterfaceReferenceCollection(references.ToImmutableHashSet());
+                return new InterfaceOrMethodReferenceCollection(references.ToImmutableHashSet());
             });
         }
 
-        private InterfaceReferenceCollection(ImmutableHashSet<GenericSymbolReference> references)
+        private InterfaceOrMethodReferenceCollection(ImmutableHashSet<GenericSymbolReference> references)
         {
             this.references = references;
             hashCode = Hash.Combine(references);
@@ -48,10 +48,10 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public override bool Equals(object obj)
         {
-            return obj is InterfaceReferenceCollection other && Equals(other);
+            return obj is InterfaceOrMethodReferenceCollection other && Equals(other);
         }
 
-        public bool Equals(InterfaceReferenceCollection other)
+        public bool Equals(InterfaceOrMethodReferenceCollection other)
         {
             return references.SetEquals(other.references);
         }
