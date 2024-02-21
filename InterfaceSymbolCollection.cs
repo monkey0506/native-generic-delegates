@@ -1,18 +1,17 @@
 ﻿using Microsoft.CodeAnalysis;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
 namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 {
-    internal readonly struct InterfaceSymbolCollection : IEquatable<InterfaceSymbolCollection>
+    internal readonly struct InterfaceSymbolCollection : IEquatable<InterfaceSymbolCollection>, IEnumerable<ISymbol>
     {
         private readonly int hashCode;
-
-        public readonly INamedTypeSymbol[] ActionInterfaceSymbols;
-        public readonly IMethodSymbol[] ActionFromFunctionPointerGenericSymbols;
-        public readonly INamedTypeSymbol[] FuncInterfaceSymbols;
-        public readonly IMethodSymbol[] FuncFromFunctionPointerGenericSymbols;
+        private readonly ImmutableList<ISymbol> symbols;
 
         public static bool operator ==(InterfaceSymbolCollection left, InterfaceSymbolCollection right) => left.Equals(right);
         public static bool operator !=(InterfaceSymbolCollection left, InterfaceSymbolCollection right) => !(left == right);
@@ -30,31 +29,27 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public InterfaceSymbolCollection(Compilation compilation, CancellationToken cancellationToken)
         {
-            ActionInterfaceSymbols = new INamedTypeSymbol[17];
-            ActionFromFunctionPointerGenericSymbols = new IMethodSymbol[17];
-            FuncInterfaceSymbols = new INamedTypeSymbol[17];
-            FuncFromFunctionPointerGenericSymbols = new IMethodSymbol[17];
-            for (int i = 0; i < 17; ++i)
+            var list = new List<ISymbol>(Constants.InterfaceAndGenericMethodSymbolCount);
+            for (int i = 0; i < Constants.InterfaceSymbolCountPerKind; ++i)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var action = compilation.GetTypeByMetadataName(Constants.Actions.MetadataNames[i])!;
-                var actionFromFuncPointer = action.GetMembers(Constants.FromFunctionPointerIdentifier).Cast<IMethodSymbol>()
-                    .Where(x => i == 0 || x.IsGenericMethod).First();
-                var func = compilation.GetTypeByMetadataName(Constants.Funcs.MetadataNames[i])!;
-                var funcFromFuncPointer = func.GetMembers(Constants.FromFunctionPointerIdentifier).Cast<IMethodSymbol>()
-                    .Where(x => x.IsGenericMethod).First();
-                ActionInterfaceSymbols[i] = action;
-                ActionFromFunctionPointerGenericSymbols[i] = actionFromFuncPointer;
-                FuncInterfaceSymbols[i] = func;
-                FuncFromFunctionPointerGenericSymbols[i] = funcFromFuncPointer;
+                var interfaceSymbol = compilation.GetTypeByMetadataName(Constants.Actions.MetadataNames[i])!;
+                // GetMembers *seems* to be ordered, but this is not a documented part of the API
+                // explicitly order the members for Equals comparisons
+                var genericMethods = interfaceSymbol.GetMembers()
+                    .Where(x => x is IMethodSymbol methodSymbol && methodSymbol.IsGenericMethod)
+                    .OrderBy(x => x.Name);
+                list.Add(interfaceSymbol);
+                list.AddRange(genericMethods);
+                interfaceSymbol = compilation.GetTypeByMetadataName(Constants.Funcs.MetadataNames[i])!;
+                genericMethods = interfaceSymbol.GetMembers()
+                    .Where(x => x is IMethodSymbol methodSymbol && methodSymbol.IsGenericMethod)
+                    .OrderBy(x => x.Name);
+                list.Add(interfaceSymbol);
+                list.AddRange(genericMethods);
             }
-            hashCode = Hash.Combine
-            (
-                ActionInterfaceSymbols,
-                ActionFromFunctionPointerGenericSymbols,
-                FuncInterfaceSymbols,
-                FuncFromFunctionPointerGenericSymbols
-            );
+            symbols = list.ToImmutableList();
+            hashCode = Hash.Combine(symbols);
         }
 
         public override bool Equals(object obj)
@@ -64,25 +59,28 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public bool Equals(InterfaceSymbolCollection other)
         {
-            for (int i = 0; i < 17; ++i)
+            if (symbols.Count != other.symbols.Count)
             {
-                if (!SymbolEqualityComparer.Default.Equals(ActionInterfaceSymbols[i], other.ActionInterfaceSymbols[i]) ||
-                    !SymbolEqualityComparer.Default.Equals
-                    (
-                        ActionFromFunctionPointerGenericSymbols[i],
-                        other.ActionFromFunctionPointerGenericSymbols[i]
-                    ) ||
-                    !SymbolEqualityComparer.Default.Equals(FuncInterfaceSymbols[i], other.FuncInterfaceSymbols[i]) ||
-                    !SymbolEqualityComparer.Default.Equals
-                    (
-                        FuncFromFunctionPointerGenericSymbols[i],
-                        other.FuncFromFunctionPointerGenericSymbols[i])
-                    )
+                return false;
+            }
+            for (int i = 0; i < symbols.Count; ++i)
+            {
+                if (!SymbolEqualityComparer.Default.Equals(symbols[i], other.symbols[i]))
                 {
                     return false;
                 }
             }
             return true;
+        }
+
+        public IEnumerator<ISymbol> GetEnumerator()
+        {
+            return symbols.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         public override int GetHashCode()

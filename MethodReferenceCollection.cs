@@ -24,31 +24,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             {
                 HashSet<MethodReference> references = [];
                 List<Diagnostic> diagnostics = [];
-                foreach (var reference in interfaceReferences.ActionReferences)
-                {
-                    var methodReference = MethodReference.GetReference(reference, diagnostics, cancellationToken);
-                    if (methodReference is not null)
-                    {
-                        _ = references.Add(methodReference.Value);
-                    }
-                }
-                foreach (var reference in interfaceReferences.ActionFromFunctionPointerGenericReferences)
-                {
-                    var methodReference = MethodReference.GetReference(reference, diagnostics, cancellationToken);
-                    if (methodReference is not null)
-                    {
-                        _ = references.Add(methodReference.Value);
-                    }
-                }
-                foreach (var reference in interfaceReferences.FuncReferences)
-                {
-                    var methodReference = MethodReference.GetReference(reference, diagnostics, cancellationToken);
-                    if (methodReference is not null)
-                    {
-                        _ = references.Add(methodReference.Value);
-                    }
-                }
-                foreach (var reference in interfaceReferences.FuncFromFunctionPointerGenericReferences)
+                foreach (var reference in interfaceReferences)
                 {
                     var methodReference = MethodReference.GetReference(reference, diagnostics, cancellationToken);
                     if (methodReference is not null)

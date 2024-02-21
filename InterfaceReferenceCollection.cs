@@ -1,19 +1,18 @@
 ﻿using Microsoft.CodeAnalysis;
 using Monkeymoto.GeneratorUtils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 {
-    internal readonly struct InterfaceReferenceCollection : IEquatable<InterfaceReferenceCollection>
+    internal readonly struct InterfaceReferenceCollection :
+        IEquatable<InterfaceReferenceCollection>,
+        IEnumerable<GenericSymbolReference>
     {
         private readonly int hashCode;
-
-        public readonly ImmutableHashSet<GenericSymbolReference> ActionReferences;
-        public readonly ImmutableHashSet<GenericSymbolReference> ActionFromFunctionPointerGenericReferences;
-        public readonly ImmutableHashSet<GenericSymbolReference> FuncReferences;
-        public readonly ImmutableHashSet<GenericSymbolReference> FuncFromFunctionPointerGenericReferences;
+        private readonly ImmutableHashSet<GenericSymbolReference> references;
 
         public static bool operator ==(InterfaceReferenceCollection left, InterfaceReferenceCollection right) =>
             left.Equals(right);
@@ -31,53 +30,20 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             {
                 var symbols = x.Left;
                 using var tree = x.Right; // Dispose tree after we extract the symbol references we need
-                HashSet<GenericSymbolReference> actionReferences = [];
-                HashSet<GenericSymbolReference> actionFromFunctionPointerGenericReferences = [];
-                HashSet<GenericSymbolReference> funcReferences = [];
-                HashSet<GenericSymbolReference> funcFromFunctionPointerGenericReferences = [];
-                for (int i = 0; i < 17; ++i)
+                HashSet<GenericSymbolReference> references = [];
+                foreach (var symbol in symbols)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    actionReferences.UnionWith(tree.GetBranchesBySymbol(symbols.ActionInterfaceSymbols[i], cancellationToken));
-                    actionFromFunctionPointerGenericReferences.UnionWith
-                    (
-                        tree.GetBranchesBySymbol(symbols.ActionFromFunctionPointerGenericSymbols[i], cancellationToken)
-                    );
-                    funcReferences.UnionWith(tree.GetBranchesBySymbol(symbols.FuncInterfaceSymbols[i], cancellationToken));
-                    funcFromFunctionPointerGenericReferences.UnionWith
-                    (
-                        tree.GetBranchesBySymbol(symbols.FuncFromFunctionPointerGenericSymbols[i], cancellationToken)
-                    );
+                    references.UnionWith(tree.GetBranchesBySymbol(symbol, cancellationToken));
                 }
-                return new InterfaceReferenceCollection
-                (
-                    actionReferences,
-                    actionFromFunctionPointerGenericReferences,
-                    funcReferences,
-                    funcFromFunctionPointerGenericReferences
-                );
+                return new InterfaceReferenceCollection(references.ToImmutableHashSet());
             });
         }
 
-        private InterfaceReferenceCollection
-        (
-            HashSet<GenericSymbolReference> actionReferences,
-            HashSet<GenericSymbolReference> actionFromFunctionPointerGenericReferences,
-            HashSet<GenericSymbolReference> funcReferences,
-            HashSet<GenericSymbolReference> funcFromFunctionPointerGenericReferences
-        )
+        private InterfaceReferenceCollection(ImmutableHashSet<GenericSymbolReference> references)
         {
-            ActionReferences = actionReferences.ToImmutableHashSet();
-            ActionFromFunctionPointerGenericReferences = actionFromFunctionPointerGenericReferences.ToImmutableHashSet();
-            FuncReferences = funcReferences.ToImmutableHashSet();
-            FuncFromFunctionPointerGenericReferences = funcFromFunctionPointerGenericReferences.ToImmutableHashSet();
-            hashCode = Hash.Combine
-            (
-                ActionReferences,
-                ActionFromFunctionPointerGenericReferences,
-                FuncReferences,
-                FuncFromFunctionPointerGenericReferences
-            );
+            this.references = references;
+            hashCode = Hash.Combine(references);
         }
 
         public override bool Equals(object obj)
@@ -87,10 +53,17 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public bool Equals(InterfaceReferenceCollection other)
         {
-            return ActionReferences.SetEquals(other.ActionReferences) &&
-                ActionFromFunctionPointerGenericReferences.SetEquals(other.ActionFromFunctionPointerGenericReferences) &&
-                FuncReferences.SetEquals(other.FuncReferences) &&
-                FuncFromFunctionPointerGenericReferences.SetEquals(other.FuncFromFunctionPointerGenericReferences);
+            return references.SetEquals(other.references);
+        }
+
+        public IEnumerator<GenericSymbolReference> GetEnumerator()
+        {
+            return references.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         public override int GetHashCode()

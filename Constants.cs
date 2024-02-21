@@ -34,6 +34,19 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         public static readonly string GeneratedFilesOutputPath =
             Path.Combine(GeneratorAssemblyName, GeneratorClassAssemblyQualifiedName);
 
+        /// <summary>
+        /// Returns the total number of interfaces per kind (Action or Func).
+        /// </summary>
+        public const int InterfaceSymbolCountPerKind = 17;
+        private const int GenericSymbolCountPerInterface = 1;
+        private const int GenericSymbolCountPerKind = InterfaceSymbolCountPerKind * GenericSymbolCountPerInterface;
+        /// <summary>
+        /// Returns the total number of interfaces (INativeAction and INativeFunc types) and generic methods that those
+        /// interfaces contain.
+        /// </summary>
+        public const int InterfaceAndGenericMethodSymbolCount =
+            ((InterfaceSymbolCountPerKind + GenericSymbolCountPerKind) * 2) - 1;
+
         private const string Parameters_T0 = "";
         private const string Parameters_T1 = "T t";
         private const string Parameters_T1_T2 = "T1 t1, T2 t2";
