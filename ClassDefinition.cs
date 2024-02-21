@@ -49,8 +49,6 @@ $@"MarshalAsAttribute marshalReturnAs,
             var interfaceTypeArguments = GetInterfaceTypeArguments(interfaceType);
             var interfaceName = $"INative{identifier}{interfaceTypeArguments}";
             var unmanagedCallingConvention = GetUnmanagedCallingConvention(argumentInfo.CallingConvention);
-            var functionPointerTypeArguments = GetFunctionPointerTypeArguments(method, isAction);
-            var functionPointerType = $"delegate* unmanaged[{unmanagedCallingConvention}]{functionPointerTypeArguments}";
             var interceptorMarshalParamsAsParam = invokeParameterCount == 0 ?
                 "" :
 $@"MarshalAsAttribute[] marshalParamsAs,
@@ -65,13 +63,11 @@ $@"MarshalAsAttribute[] marshalParamsAs,
                 interfaceType.TypeArguments
             );
             string? constructor;
-            string? invokeHandler;
             string? interceptorParameters;
             switch (isFromFunctionPointer)
             {
                 case true:
-                    constructor = GetConstructor(name, functionPointerType, method.IsGenericMethod);
-                    invokeHandler = method.IsGenericMethod ? "handler" : "functionPtr";
+                    constructor = GetConstructor(name, method.IsGenericMethod);
                     interceptorParameters = GetInterceptorParameters
                     (
                         "nint functionPtr",
@@ -83,8 +79,7 @@ $@"MarshalAsAttribute[] marshalParamsAs,
                     var arg = identifier.ToLower();
                     var argType = $"{identifier}{interfaceTypeArguments}";
                     var param = $"{argType} {arg}";
-                    constructor = GetConstructor(name, param, arg, functionPointerType);
-                    invokeHandler = "functionPtr";
+                    constructor = GetConstructor(name, param, arg);
                     interceptorParameters = GetInterceptorParameters
                     (
                         param,
@@ -97,7 +92,7 @@ $@"MarshalAsAttribute[] marshalParamsAs,
 $@"    file unsafe sealed class {name} : {interfaceName}
     {{
         private readonly Handler handler;
-        private readonly {functionPointerType} functionPtr;
+        private readonly nint functionPtr;
 
         [UnmanagedFunctionPointer(CallingConvention.{argumentInfo.CallingConvention})]
         {returnMarshalAsAttribute}public delegate {returnType} Handler{parameters};
@@ -114,7 +109,7 @@ $@"    file unsafe sealed class {name} : {interfaceName}
         [UnmanagedCallConv(CallConvs = new[] {{ typeof(CallConv{unmanagedCallingConvention}) }})]
         {returnMarshalAsAttribute}public {returnType} Invoke{parameters}
         {{
-            {returnKeyword}{invokeHandler}({Constants.Arguments[invokeParameterCount]});
+            {returnKeyword}handler({Constants.Arguments[invokeParameterCount]});
         }}
 
         {interceptorAttributes}[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -129,18 +124,18 @@ $@"    file unsafe sealed class {name} : {interfaceName}
 ";
         }
 
-        private static string GetConstructor(string name, string param, string arg, string functionPointerType)
+        private static string GetConstructor(string name, string param, string arg)
         {
             return
 $@"internal {name}({param})
         {{
             ArgumentNullException.ThrowIfNull({arg});
             handler = (Handler)Delegate.CreateDelegate(typeof(Handler), {arg}.Target, {arg}.Method);
-            functionPtr = ({functionPointerType})Marshal.GetFunctionPointerForDelegate(handler);
+            functionPtr = Marshal.GetFunctionPointerForDelegate(handler);
         }}";
         }
 
-        private static string GetConstructor(string name, string functionPointerType, bool isGeneric)
+        private static string GetConstructor(string name, bool isGeneric)
         {
             var handlerImpl = isGeneric ? "Marshal.GetDelegateForFunctionPointer<Handler>(functionPtr)" : "Invoke";
             return
@@ -151,31 +146,8 @@ $@"internal {name}(nint functionPtr)
                 throw new ArgumentNullException(nameof(functionPtr));
             }}
             handler = {handlerImpl};
-            this.functionPtr = ({functionPointerType})functionPtr;
+            this.functionPtr = functionPtr;
         }}";
-        }
-
-        private static string GetFunctionPointerTypeArguments(IMethodSymbol method, bool isAction)
-        {
-            var sb = new StringBuilder("<");
-            var typeArguments = method.IsGenericMethod ? method.TypeArguments : method.ContainingType.TypeArguments;
-            for (int i = 0; i < typeArguments.Length; ++i)
-            {
-                if (i != 0)
-                {
-                    _ = sb.Append(", ");
-                }
-                _ = sb.Append(typeArguments[i].ToDisplayString());
-            }
-            if (isAction)
-            {
-                if (sb.Length > 1)
-                {
-                    _ = sb.Append(", ");
-                }
-                _ = sb.Append("void");
-            }
-            return sb.Append('>').ToString();
         }
 
         private static string GetInterceptorAttributes(IReadOnlyList<MethodReference> references)
