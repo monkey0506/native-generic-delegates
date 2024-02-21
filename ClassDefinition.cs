@@ -89,7 +89,7 @@ $@"MarshalAsAttribute[] marshalParamsAs,
                     break;
             }
             SourceText =
-$@"    file unsafe sealed class {name} : {interfaceName}
+$@"    file sealed class {name} : {interfaceName}
     {{
         private readonly Handler handler;
         private readonly nint functionPtr;
