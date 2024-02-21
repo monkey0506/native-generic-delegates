@@ -297,22 +297,6 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 );
                 return result;
             }
-
-            public static string GetSourceText(string? value)
-            {
-                if (value is null)
-                {
-                    return "null";
-                }
-                int index = value.IndexOf(',');
-                if (index == -1)
-                {
-                    return $"new MarshalAsAttribute({value})";
-                }
-                string head = value.Substring(0, index);
-                string tail = value.Substring(index + 2);
-                return $"new MarshalAsAttribute({head}) {{ {tail} }}";
-            }
         }
     }
 }
