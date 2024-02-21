@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -36,7 +35,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 ICollection collection => GetHashCode(collection),
                 IEnumerable enumerable => GetHashCode(enumerable),
                 not null => value.GetHashCode(),
-                _ => throw new ArgumentNullException(nameof(value))
+                _ => 0
             };
         }
 
