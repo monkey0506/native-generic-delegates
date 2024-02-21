@@ -67,7 +67,7 @@ $@"MarshalAsAttribute[] marshalParamsAs,
             switch (isFromFunctionPointer)
             {
                 case true:
-                    constructor = GetConstructor(name, method.IsGenericMethod);
+                    constructor = GetFromFunctionPointerConstructor(name);
                     interceptorParameters = GetInterceptorParameters
                     (
                         "nint functionPtr",
@@ -79,7 +79,7 @@ $@"MarshalAsAttribute[] marshalParamsAs,
                     var arg = identifier.ToLower();
                     var argType = $"{identifier}{interfaceTypeArguments}";
                     var param = $"{argType} {arg}";
-                    constructor = GetConstructor(name, param, arg);
+                    constructor = GetFromDelegateConstructor(name, param, arg);
                     interceptorParameters = GetInterceptorParameters
                     (
                         param,
@@ -124,7 +124,7 @@ $@"    file unsafe sealed class {name} : {interfaceName}
 ";
         }
 
-        private static string GetConstructor(string name, string param, string arg)
+        private static string GetFromDelegateConstructor(string name, string param, string arg)
         {
             return
 $@"internal {name}({param})
@@ -135,9 +135,8 @@ $@"internal {name}({param})
         }}";
         }
 
-        private static string GetConstructor(string name, bool isGeneric)
+        private static string GetFromFunctionPointerConstructor(string name)
         {
-            var handlerImpl = isGeneric ? "Marshal.GetDelegateForFunctionPointer<Handler>(functionPtr)" : "Invoke";
             return
 $@"internal {name}(nint functionPtr)
         {{
@@ -145,7 +144,7 @@ $@"internal {name}(nint functionPtr)
             {{
                 throw new ArgumentNullException(nameof(functionPtr));
             }}
-            handler = {handlerImpl};
+            handler = Marshal.GetDelegateForFunctionPointer<Handler>(functionPtr);
             this.functionPtr = functionPtr;
         }}";
         }

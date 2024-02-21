@@ -9,12 +9,9 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         {
             string? optionalMarshalReturnAsParameter;
             string? qualifiedTypeParameters;
-            string? requiredMarshalReturnAsParameter;
             string? returnType;
             string? type;
             string? typeParameters;
-            string? unmanagedTypeConstraints;
-            string? unmanagedTypeParameters;
             switch (isAction)
             {
                 case true:
@@ -22,24 +19,17 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                     qualifiedTypeParameters = argumentCount == 0 ?
                         "" :
                         $"<{Constants.Actions.QualifiedTypeParameters[argumentCount]}>";
-                    requiredMarshalReturnAsParameter = "";
                     returnType = "void";
                     type = "Action";
                     typeParameters = argumentCount == 0 ? "" : $"<{Constants.Actions.TypeParameters[argumentCount]}>";
-                    unmanagedTypeConstraints = Constants.Actions.UnmanagedTypeConstraints[argumentCount];
-                    unmanagedTypeParameters = Constants.Actions.UnmanagedTypeParameters[argumentCount];
                     break;
                 case false:
                     optionalMarshalReturnAsParameter = $@",
             MarshalAsAttribute? marshalReturnAs = null";
                     qualifiedTypeParameters = $"<{Constants.Funcs.QualifiedTypeParameters[argumentCount]}>";
-                    requiredMarshalReturnAsParameter = $@",
-            MarshalAsAttribute marshalReturnAs";
                     returnType = "TResult";
                     type = "Func";
                     typeParameters = $"<{Constants.Funcs.TypeParameters[argumentCount]}>";
-                    unmanagedTypeConstraints = Constants.Funcs.UnmanagedTypeConstraints[argumentCount];
-                    unmanagedTypeParameters = Constants.Funcs.UnmanagedTypeParameters[argumentCount];
                     break;
                 default:
                     throw new UnreachableException();
@@ -69,16 +59,7 @@ $@"    internal interface INative{type}{qualifiedTypeParameters}
         )
         {{
             throw new NotImplementedException();
-        }}{(isAction && argumentCount == 0 ? "" : $@"
-
-        public static INative{genericType} FromFunctionPointer<{unmanagedTypeParameters}>
-        (
-            nint functionPtr{requiredMarshalReturnAsParameter},
-            MarshalAsAttribute[] marshalParamsAs{callingConvention}
-        ){unmanagedTypeConstraints}
-        {{
-            throw new NotImplementedException();
-        }}")}
+        }}
 
         public nint GetFunctionPointer();
         public {returnType} Invoke({parameters});

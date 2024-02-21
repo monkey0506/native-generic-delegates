@@ -20,16 +20,6 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 .. Shared.TypeParameters.Skip(1).Select(x => $"{x}, TResult")
             ];
 
-            public static readonly string[] UnmanagedTypeConstraints =
-            [
-                .. Shared.UnmanagedTypeConstraints.Select
-                (
-                    x => $@"{x}
-                where UResult : unmanaged"
-                )
-            ];
-
-            public static readonly string[] UnmanagedTypeParameters = [.. TypeParameters.Select(x => x.Replace('T', 'U'))];
             public static readonly string[] Interfaces = [.. QualifiedTypeParameters.Select(x => $"INativeFunc<{x}>")];
 
             public static readonly string[] MetadataNames =

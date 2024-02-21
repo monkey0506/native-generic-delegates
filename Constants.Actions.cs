@@ -10,8 +10,6 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
             public static readonly string[] TypeParameters = Shared.TypeParameters;
             public static readonly string[] QualifiedTypeParameters = Shared.QualifiedTypeParameters;
-            public static readonly string[] UnmanagedTypeConstraints = Shared.UnmanagedTypeConstraints;
-            public static readonly string[] UnmanagedTypeParameters = Shared.UnmanagedTypeParameters;
 
             public static readonly string[] Interfaces =
             [
