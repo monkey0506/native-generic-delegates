@@ -6,21 +6,20 @@ using System.Collections.Immutable;
 
 namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 {
-    internal readonly struct MethodReferenceCollection : IEnumerable<MethodReference>, IEquatable<MethodReferenceCollection>
+    internal readonly struct MethodReferenceCollection : IEquatable<MethodReferenceCollection>, IEnumerable<MethodReference>
     {
         private readonly int hash;
-
-        public readonly ImmutableHashSet<MethodReference> References;
+        private readonly ImmutableHashSet<MethodReference> references;
 
         public static bool operator ==(MethodReferenceCollection left, MethodReferenceCollection right) => left.Equals(right);
         public static bool operator !=(MethodReferenceCollection left, MethodReferenceCollection right) => !(left == right);
 
         public static IncrementalValueProvider<(MethodReferenceCollection, IReadOnlyList<Diagnostic>)> GetReferencesOrDiagnostics
         (
-            IncrementalValueProvider<InterfaceOrMethodReferenceCollection> references
+            IncrementalValueProvider<InterfaceOrMethodReferenceCollection> referencesProvider
         )
         {
-            return references.Select(static (references, cancellationToken) =>
+            return referencesProvider.Select(static (references, cancellationToken) =>
             {
                 HashSet<MethodReference> methodReferences = [];
                 List<Diagnostic> diagnostics = [];
@@ -32,14 +31,18 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                         _ = methodReferences.Add(methodReference.Value);
                     }
                 }
-                return (new MethodReferenceCollection(methodReferences), (IReadOnlyList<Diagnostic>)diagnostics.AsReadOnly());
+                return
+                (
+                    new MethodReferenceCollection(methodReferences.ToImmutableHashSet()),
+                    (IReadOnlyList<Diagnostic>)diagnostics.AsReadOnly()
+                );
             });
         }
 
-        private MethodReferenceCollection(HashSet<MethodReference> references)
+        private MethodReferenceCollection(ImmutableHashSet<MethodReference> references)
         {
-            References = references.ToImmutableHashSet();
-            hash = Hash.Combine(References);
+            this.references = references;
+            hash = Hash.Combine(references);
         }
 
         public override bool Equals(object obj)
@@ -49,7 +52,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public bool Equals(MethodReferenceCollection other)
         {
-            return References.SetEquals(other.References);
+            return references.SetEquals(other.references);
         }
 
         public override int GetHashCode()
@@ -59,7 +62,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public IEnumerator<MethodReference> GetEnumerator()
         {
-            return References.GetEnumerator();
+            return references.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
