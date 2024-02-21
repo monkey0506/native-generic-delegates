@@ -7,7 +7,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 {
     internal readonly struct MethodImplementationCollection : IEquatable<MethodImplementationCollection>
     {
-        private readonly int hash;
+        private readonly int hashCode;
 
         public readonly IReadOnlyList<MethodImplementation> Implementations;
 
@@ -71,7 +71,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         private MethodImplementationCollection(IReadOnlyList<MethodImplementation> implementations)
         {
             Implementations = implementations;
-            hash = Hash.Combine(Implementations);
+            hashCode = Hash.Combine(Implementations);
         }
 
         public override bool Equals(object obj)
@@ -86,7 +86,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public override int GetHashCode()
         {
-            return hash;
+            return hashCode;
         }
     }
 }

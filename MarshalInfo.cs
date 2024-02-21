@@ -10,7 +10,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 {
     internal readonly partial struct MarshalInfo : IEquatable<MarshalInfo>
     {
-        private readonly int hash;
+        private readonly int hashCode;
 
         public readonly string? MarshalReturnAs;
         public readonly IReadOnlyList<string?>? MarshalParamsAs;
@@ -35,7 +35,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 cancellationToken
             );
             MarshalReturnAs = Parser.GetMarshalReturnAs(marshalReturnAsArgument, diagnostics, cancellationToken);
-            hash = Hash.Combine(MarshalParamsAs, MarshalReturnAs);
+            hashCode = Hash.Combine(MarshalParamsAs, MarshalReturnAs);
         }
 
         public override bool Equals(object obj)
@@ -62,7 +62,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public override int GetHashCode()
         {
-            return hash;
+            return hashCode;
         }
     }
 }

@@ -40,18 +40,18 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         }
 
         /// <summary>
-        /// Combines the provided hash codes.
+        /// Combines the provided hashCode codes.
         /// </summary>
         /// <remarks>
         /// <para>
         /// Adapted from <see href="https://stackoverflow.com/a/1646913">Quick and Simple Hash Code Combinations - Stack
         /// Overflow</see> answer by user <see href="https://stackoverflow.com/users/22656/jon-skeet">Jon Skeet</see>, licensed
         /// under <see href="https://creativecommons.org/licenses/by-sa/2.5/">CC BY-SA 2.5</see>. Changes have been made to
-        /// permit a variable number of hash codes.
+        /// permit a variable number of hashCode codes.
         /// </para>
         /// </remarks>
-        /// <param name="hashCodes">The hash codes to combine.</param>
-        /// <returns>The hash value generated from the provided hash codes.</returns>
+        /// <param name="hashCodes">The hashCode codes to combine.</param>
+        /// <returns>The hashCode value generated from the provided hashCode codes.</returns>
         private static int CombineHashCodes(params int[] hashCodes)
         {
             unchecked

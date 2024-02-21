@@ -10,7 +10,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 {
     internal readonly struct ArgumentInfo : IEquatable<ArgumentInfo>
     {
-        private readonly int hash;
+        private readonly int hashCode;
 
         public readonly CallingConvention CallingConvention;
         public readonly MarshalInfo MarshalInfo;
@@ -70,7 +70,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 diagnostics,
                 cancellationToken
             );
-            hash = Hash.Combine(CallingConvention, MarshalInfo);
+            hashCode = Hash.Combine(CallingConvention, MarshalInfo);
         }
 
         public override bool Equals(object obj)
@@ -85,7 +85,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public override int GetHashCode()
         {
-            return hash;
+            return hashCode;
         }
     }
 }

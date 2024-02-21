@@ -8,7 +8,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 {
     internal readonly struct MethodReferenceCollection : IEquatable<MethodReferenceCollection>, IEnumerable<MethodReference>
     {
-        private readonly int hash;
+        private readonly int hashCode;
         private readonly ImmutableHashSet<MethodReference> references;
 
         public static bool operator ==(MethodReferenceCollection left, MethodReferenceCollection right) => left.Equals(right);
@@ -42,7 +42,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         private MethodReferenceCollection(ImmutableHashSet<MethodReference> references)
         {
             this.references = references;
-            hash = Hash.Combine(references);
+            hashCode = Hash.Combine(references);
         }
 
         public override bool Equals(object obj)
@@ -57,7 +57,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public override int GetHashCode()
         {
-            return hash;
+            return hashCode;
         }
 
         public IEnumerator<MethodReference> GetEnumerator()
