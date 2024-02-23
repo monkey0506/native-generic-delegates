@@ -23,10 +23,6 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         private const string Arguments_T1_T15 = $"{Arguments_T1_T14}, t15";
         private const string Arguments_T1_T16 = $"{Arguments_T1_T15}, t16";
 
-        public static readonly CallingConvention DefaultCallingConvention = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-            CallingConvention.StdCall :
-            CallingConvention.Cdecl;
-
         public const string FromFunctionPointerIdentifier = "FromFunctionPointer";
 
         public static readonly string GeneratorAssemblyName = typeof(Constants).Assembly.GetName().Name;

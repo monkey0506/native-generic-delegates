@@ -59,9 +59,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 }
                 // TODO: diagnostic - must use System.Runtime.InteropServices.CallingConvention literal value
             }
-            CallingConvention = callingConvention == CallingConvention.Winapi ?
-                Constants.DefaultCallingConvention :
-                callingConvention;
+            CallingConvention = callingConvention;
             MarshalInfo = new
             (
                 marshalReturnAsArgument,
