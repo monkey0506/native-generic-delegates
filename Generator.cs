@@ -25,8 +25,8 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 }
             });
             var methodReferences = methodReferencesOrDiagnostics.Select(static (x, _) => x.Item1);
-            var methodImplementations = MethodImplementationCollection.GetImplementations(methodReferences);
-            context.RegisterImplementationSourceOutput(methodImplementations, static (context, methodImplementations) =>
+            var classDescriptors = ClassDescriptorCollection.GetImplementations(methodReferences);
+            context.RegisterImplementationSourceOutput(classDescriptors, static (context, classDescriptors) =>
             {
                 var sb = new StringBuilder
                 (
@@ -40,9 +40,9 @@ using System.Runtime.InteropServices;
 namespace {Constants.RootNamespace}
 {{"
                 );
-                foreach (var methodImplementation in methodImplementations.Implementations)
+                foreach (var classDescriptor in classDescriptors)
                 {
-                    _ = sb.AppendLine().Append(methodImplementation.SourceText);
+                    _ = sb.AppendLine().Append(classDescriptor.GetSourceText());
                 }
                 _ = sb.AppendLine("}");
                 context.AddSource(Constants.SourceFileName, sb.ToString());

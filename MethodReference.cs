@@ -18,6 +18,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         public readonly int InvokeParameterCount;
         public readonly bool IsAction;
         public readonly bool IsFromFunctionPointer;
+        public readonly bool IsSyntaxReferenceClosedTypeOrMethod;
         public readonly int Line;
         public readonly IMethodSymbol Method;
 
@@ -39,6 +40,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                     (IMethodSymbol)genericSymbolReference.Symbol,
                     genericSymbolReference.SemanticModel!,
                     invocationExpressionSyntax,
+                    genericSymbolReference.IsSyntaxReferenceClosedTypeOrMethod,
                     diagnostics,
                     cancellationToken
                 );
@@ -58,6 +60,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                     method,
                     genericSymbolReference.SemanticModel!,
                     (InvocationExpressionSyntax)genericSymbolReference.Node.Parent.Parent,
+                    genericSymbolReference.IsSyntaxReferenceClosedTypeOrMethod,
                     diagnostics,
                     cancellationToken
                 );
@@ -70,6 +73,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             IMethodSymbol method,
             SemanticModel semanticModel,
             InvocationExpressionSyntax invocationExpressionSyntax,
+            bool isSyntaxReferenceClosedTypeOrMethod,
             List<Diagnostic> diagnostics,
             CancellationToken cancellationToken
         )
@@ -92,6 +96,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             InvokeParameterCount = invokeParameterCount;
             IsAction = isAction;
             IsFromFunctionPointer = method.Name == Constants.FromFunctionPointerIdentifier;
+            IsSyntaxReferenceClosedTypeOrMethod = isSyntaxReferenceClosedTypeOrMethod;
             Line = linePosition.Line + 1;
             Method = method;
             hashCode = Hash.Combine(Character, FilePath, Line);
