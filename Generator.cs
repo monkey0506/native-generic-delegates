@@ -44,7 +44,7 @@ namespace {Constants.RootNamespace}
                 {
                     _ = sb.AppendLine().Append(classDescriptor.GetSourceText());
                 }
-                _ = sb.AppendLine("}");
+                _ = sb.Append(classDescriptors.GetOpenInterceptorsSourceText()).AppendLine("}");
                 context.AddSource(Constants.SourceFileName, sb.ToString());
             });
         }

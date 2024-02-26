@@ -15,6 +15,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         public readonly ArgumentInfo ArgumentInfo;
         public readonly int Character;
         public readonly string FilePath;
+        public readonly INamedTypeSymbol InterfaceSymbol;
         public readonly int InvokeParameterCount;
         public readonly bool IsAction;
         public readonly bool IsFromFunctionPointer;
@@ -37,6 +38,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 // generic methods (currently none)
                 return new
                 (
+                    ((IMethodSymbol)genericSymbolReference.Symbol).ContainingType,
                     (IMethodSymbol)genericSymbolReference.Symbol,
                     genericSymbolReference.SemanticModel!,
                     invocationExpressionSyntax,
@@ -57,6 +59,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                     .GetMembers(methodNameSyntax.Identifier.ToString()).Cast<IMethodSymbol>().First(x => !x.IsGenericMethod);
                 return new
                 (
+                    (INamedTypeSymbol)genericSymbolReference.Symbol,
                     method,
                     genericSymbolReference.SemanticModel!,
                     (InvocationExpressionSyntax)genericSymbolReference.Node.Parent.Parent,
@@ -70,6 +73,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         private MethodReference
         (
+            INamedTypeSymbol interfaceSymbol,
             IMethodSymbol method,
             SemanticModel semanticModel,
             InvocationExpressionSyntax invocationExpressionSyntax,
@@ -93,13 +97,14 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             );
             Character = linePosition.Character + 1;
             FilePath = invocationExpressionSyntax.SyntaxTree.FilePath;
+            InterfaceSymbol = interfaceSymbol;
             InvokeParameterCount = invokeParameterCount;
             IsAction = isAction;
             IsFromFunctionPointer = method.Name == Constants.FromFunctionPointerIdentifier;
             IsSyntaxReferenceClosedTypeOrMethod = isSyntaxReferenceClosedTypeOrMethod;
             Line = linePosition.Line + 1;
             Method = method;
-            hashCode = Hash.Combine(Character, FilePath, Line);
+            hashCode = Hash.Combine(Character, FilePath, Line, interfaceSymbol.TypeArguments);
         }
 
         public override bool Equals(object obj)
@@ -109,6 +114,31 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public bool Equals(MethodReference other)
         {
+            if (IsSyntaxReferenceClosedTypeOrMethod)
+            {
+                if (!other.IsSyntaxReferenceClosedTypeOrMethod)
+                {
+                    return false;
+                }
+                var typeArguments = InterfaceSymbol.TypeArguments;
+                var otherTypeArguments = other.InterfaceSymbol.TypeArguments;
+                if (typeArguments.Length != otherTypeArguments.Length)
+                {
+                    return false;
+                }
+                for (int i = 0; i < typeArguments.Length; ++i)
+                {
+                    if (!SymbolEqualityComparer.Default.Equals(typeArguments[i], otherTypeArguments[i]))
+                    {
+                        return false;
+                    }
+                }
+                throw new NotSupportedException(typeArguments[0].ToDisplayString());
+            }
+            else if (other.IsSyntaxReferenceClosedTypeOrMethod)
+            {
+                return false;
+            }
             return (Character == other.Character) && (FilePath == other.FilePath) && (Line == other.Line);
         }
 
