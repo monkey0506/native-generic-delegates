@@ -76,16 +76,13 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                     // without API support, assume that this is a C# 12 collection expression
                     // see <https://github.com/dotnet/roslyn/issues/66418>
                     // support for this syntax is intentionally limited - for example, the spread operator isn't supported
-                    var children = conversion.Descendants().Select(x =>
+                    var children = conversion.Descendants().Select(x => x switch
                     {
-                        return x switch
-                        {
-                            ILiteralOperation => x,
-                            IObjectCreationOperation => x,
-                            IConversionOperation conversion =>
-                                conversion.ChildOperations.OfType<IObjectCreationOperation>().FirstOrDefault(),
-                            _ => null
-                        };
+                        ILiteralOperation => x,
+                        IObjectCreationOperation => x,
+                        IConversionOperation conversion =>
+                            conversion.ChildOperations.OfType<IObjectCreationOperation>().FirstOrDefault(),
+                        _ => null
                     }).Where(x => x is not null);
                     if (!children.Any())
                     {
