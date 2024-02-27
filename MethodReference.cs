@@ -34,7 +34,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         {
             if (genericSymbolReference.Node is InvocationExpressionSyntax invocationExpressionSyntax)
             {
-                // FromFunctionPointer<...> (generic)
+                // generic methods (currently none)
                 return new
                 (
                     (IMethodSymbol)genericSymbolReference.Symbol,
@@ -47,7 +47,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             }
             else if (genericSymbolReference.Node.Parent?.Parent is InvocationExpressionSyntax)
             {
-                // FromAction, FromFunc, FromFunctionPointer (non-generic)
+                // non-generic methods (FromAction, FromFunc, FromFunctionPointer)
                 var methodNameSyntax = ((MemberAccessExpressionSyntax)genericSymbolReference.Node.Parent).Name;
                 if (methodNameSyntax.Arity != 0)
                 {
