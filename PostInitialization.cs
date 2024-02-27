@@ -7,7 +7,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
     {
         private static void BuildInterfaceDefinition(StringBuilder sb, bool isAction, int argumentCount)
         {
-            string? optionalMarshalReturnAsParameter;
+            string? marshalReturnAsParameter;
             string? qualifiedTypeParameters;
             string? returnType;
             string? type;
@@ -15,17 +15,22 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             switch (isAction)
             {
                 case true:
-                    optionalMarshalReturnAsParameter = "";
-                    qualifiedTypeParameters = argumentCount == 0 ?
-                        "" :
-                        $"<{Constants.Actions.QualifiedTypeParameters[argumentCount]}>";
+                    marshalReturnAsParameter = "";
                     returnType = "void";
                     type = "Action";
-                    typeParameters = argumentCount == 0 ? "" : $"<{Constants.Actions.TypeParameters[argumentCount]}>";
+                    if (argumentCount != 0)
+                    {
+                        qualifiedTypeParameters = $"<{Constants.Actions.QualifiedTypeParameters[argumentCount]}>";
+                        typeParameters = $"<{Constants.Actions.TypeParameters[argumentCount]}>";
+                    }
+                    else
+                    {
+                        qualifiedTypeParameters = "";
+                        typeParameters = "";
+                    }
                     break;
                 case false:
-                    optionalMarshalReturnAsParameter = $@",
-            MarshalAsAttribute? marshalReturnAs = null";
+                    marshalReturnAsParameter = $",{Constants.NewLine}            MarshalAsAttribute? marshalReturnAs = null";
                     qualifiedTypeParameters = $"<{Constants.Funcs.QualifiedTypeParameters[argumentCount]}>";
                     returnType = "TResult";
                     type = "Func";
@@ -34,20 +39,21 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 default:
                     throw new UnreachableException();
             }
-            string callingConvention = $@",
-            CallingConvention callingConvention = CallingConvention.Winapi";
             string genericType = $"{type}{typeParameters}";
-            string optionalMarshalParamsAsParameter = argumentCount == 0 ? "" : $@",
-            MarshalAsAttribute?[]? marshalParamsAs = null";
             string parameters = Constants.Parameters[argumentCount];
             string typeAsArgument = type.ToLower();
+            string callingConvention =
+                $",{Constants.NewLine}            CallingConvention callingConvention = CallingConvention.Winapi";
+            string marshalParamsAsParameter = argumentCount == 0 ?
+                "" :
+                $",{Constants.NewLine}            MarshalAsAttribute?[]? marshalParamsAs = null";
             _ = sb.Append
             (
 $@"    internal interface INative{type}{qualifiedTypeParameters}
     {{
         public static INative{genericType} From{type}
         (
-            {genericType} {typeAsArgument}{optionalMarshalReturnAsParameter}{optionalMarshalParamsAsParameter}{callingConvention}
+            {genericType} {typeAsArgument}{marshalReturnAsParameter}{marshalParamsAsParameter}{callingConvention}
         )
         {{
             throw new NotImplementedException();
@@ -55,7 +61,7 @@ $@"    internal interface INative{type}{qualifiedTypeParameters}
 
         public static INative{genericType} FromFunctionPointer
         (
-            nint functionPtr{optionalMarshalReturnAsParameter}{optionalMarshalParamsAsParameter}{callingConvention}
+            nint functionPtr{marshalReturnAsParameter}{marshalParamsAsParameter}{callingConvention}
         )
         {{
             throw new NotImplementedException();

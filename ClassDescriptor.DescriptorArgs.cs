@@ -7,22 +7,22 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 {
     internal readonly partial struct ClassDescriptor
     {
-        internal readonly ref struct Builder
+        internal readonly ref struct DescriptorArgs
         {
             public readonly ArgumentInfo ArgumentInfo;
             public readonly string ClassName;
             public readonly string FirstArgument;
             public readonly string FirstParameter;
-            public readonly string Identifier;
+            public readonly string InterfaceFullName;
+            public readonly string InterfaceName;
             public readonly INamedTypeSymbol InterfaceSymbol;
-            public readonly string InterfaceTypeArgumentsSourceText;
             public readonly int InvokeParameterCount;
             public readonly bool IsAction;
             public readonly bool IsFromFunctionPointer;
             public readonly IMethodSymbol Method;
             public readonly IReadOnlyList<MethodReference> References;
 
-            public Builder
+            public DescriptorArgs
             (
                 IMethodSymbol method,
                 in ArgumentInfo argumentInfo,
@@ -32,11 +32,13 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 IReadOnlyList<MethodReference> references
             )
             {
+                string identifier = isAction ? "Action" : "Func";
+                string interfaceTypeArguments = GetInterfaceTypeArguments(method.ContainingType);
                 ArgumentInfo = argumentInfo;
-                Identifier = isAction ? "Action" : "Func";
-                ClassName = $"Native{Identifier}_{Guid.NewGuid():N}";
+                ClassName = $"Native{identifier}_{Guid.NewGuid():N}";
+                InterfaceName = $"INative{identifier}";
                 InterfaceSymbol = method.ContainingType;
-                InterfaceTypeArgumentsSourceText = GetInterfaceTypeArguments(InterfaceSymbol);
+                InterfaceFullName = $"{InterfaceName}{interfaceTypeArguments}";
                 InvokeParameterCount = invokeParameterCount;
                 IsAction = isAction;
                 IsFromFunctionPointer = isFromFunctionPointer;
@@ -49,13 +51,11 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                         FirstParameter = "nint functionPtr";
                         break;
                     default:
-                        FirstArgument = Identifier.ToLower();
-                        FirstParameter = $"{Identifier}{InterfaceTypeArgumentsSourceText} {FirstArgument}";
+                        FirstArgument = identifier.ToLower();
+                        FirstParameter = $"{identifier}{interfaceTypeArguments} {FirstArgument}";
                         break;
                 }
             }
-
-            public ClassDescriptor ToDescriptor() => new(in this);
 
             private static string GetInterfaceTypeArguments(INamedTypeSymbol interfaceSymbol)
             {

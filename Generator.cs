@@ -42,9 +42,9 @@ namespace {Constants.RootNamespace}
                 );
                 foreach (var classDescriptor in classDescriptors)
                 {
-                    _ = sb.AppendLine().Append(classDescriptor.GetSourceText());
+                    _ = sb.AppendLine().Append("    ").Append(classDescriptor.SourceText);
                 }
-                _ = sb.AppendLine("}");
+                _ = sb.Append(classDescriptors.GetOpenInterceptorsSourceText()).AppendLine("}");
                 context.AddSource(Constants.SourceFileName, sb.ToString());
             });
         }

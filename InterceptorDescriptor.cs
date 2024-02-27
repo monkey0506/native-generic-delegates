@@ -1,56 +1,82 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 
 namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 {
     internal readonly struct InterceptorDescriptor
     {
-        public readonly string Attributes;
-        public readonly string MarshalParamsAsParam;
-        public readonly string MarshalReturnAsParam;
+        public readonly string ClassName;
+        public readonly string FirstArgument;
+        public readonly string InterceptsMethod;
+        public readonly string InterfaceName;
+        public readonly int MethodHash;
+        public readonly IReadOnlyList<string> OpenReferenceAttributes;
         public readonly string Parameters;
         public readonly string SourceText;
+        public readonly IReadOnlyList<string> TypeArguments;
         public readonly string TypeParameters;
 
-        public InterceptorDescriptor(in ClassDescriptor.Builder builder, in InterfaceDescriptor interfaceDescriptor)
+        public InterceptorDescriptor(in ClassDescriptor.DescriptorArgs descriptorArgs)
         {
-            Attributes = GetAttributes(builder.References);
-            TypeParameters = GetTypeParameters(builder.InterfaceSymbol.Arity, builder.Method.Arity);
-            MarshalParamsAsParam = builder.InvokeParameterCount == 0 ?
+            string closedReferenceAttributes =
+                string.Join($"{Constants.NewLine}        ", GetAttributes(descriptorArgs.References));
+            string interfaceTypeParameters = GetTypeParameters(descriptorArgs.InterfaceSymbol.Arity, 0);
+            string marshalParamsAsParam = descriptorArgs.InvokeParameterCount == 0 ?
                 "" :
-$@"MarshalAsAttribute[] marshalParamsAs,
-            ";
-            MarshalReturnAsParam = builder.IsAction switch
+                $"MarshalAsAttribute[] marshalParamsAs,{Constants.NewLine}            ";
+            string marshalReturnAsParam = descriptorArgs.IsAction switch
             {
                 true => "",
-                _ =>
-$@"MarshalAsAttribute marshalReturnAs,
-            ",
+                _ => $@"MarshalAsAttribute marshalReturnAs,{Constants.NewLine}            ",
             };
-            Parameters = GetParameters(builder.FirstParameter, MarshalReturnAsParam, MarshalParamsAsParam);
-            SourceText = GetSourceText(in builder, in interfaceDescriptor, Attributes, TypeParameters, Parameters);
+            ClassName = descriptorArgs.ClassName;
+            FirstArgument = descriptorArgs.FirstArgument;
+            InterfaceName = $"{descriptorArgs.InterfaceName}{interfaceTypeParameters}";
+            InterceptsMethod = descriptorArgs.Method.Name;
+            OpenReferenceAttributes = GetAttributes(descriptorArgs.References, closedTypes: false);
+            TypeArguments = descriptorArgs.InterfaceSymbol.TypeArguments.Select(x => x.ToDisplayString()).ToImmutableList();
+            TypeParameters = GetTypeParameters(descriptorArgs.InterfaceSymbol.Arity, descriptorArgs.Method.Arity);
+            MethodHash = Hash.Combine
+            (
+                descriptorArgs.InterfaceSymbol.Name,
+                descriptorArgs.InterfaceSymbol.Arity,
+                descriptorArgs.Method.Name,
+                descriptorArgs.ArgumentInfo
+            );
+            Parameters = GetParameters(descriptorArgs.FirstParameter, marshalReturnAsParam, marshalParamsAsParam);
+            SourceText = GetSourceText(in descriptorArgs, closedReferenceAttributes, TypeParameters, Parameters);
         }
 
-        private static string GetAttributes(IReadOnlyList<MethodReference> references)
+        private static IReadOnlyList<string> GetAttributes
+        (
+            IReadOnlyList<MethodReference> references,
+            bool closedTypes = true
+        )
         {
-            var sb = new StringBuilder();
+            var list = new List<string>(references.Count);
             foreach (var reference in references)
             {
-                _ = sb.Append
-                (
-$@"[InterceptsLocation(@""{reference.FilePath}"", {reference.Line}, {reference.Character})]
-        "
-                );
+                if (!reference.IsSyntaxReferenceClosedTypeOrMethod)
+                {
+                    if (closedTypes)
+                    {
+                        continue;
+                    }
+                }
+                else if (!closedTypes)
+                {
+                    continue;
+                }
+                list.Add($"[InterceptsLocation(@\"{reference.FilePath}\", {reference.Line}, {reference.Character})]");
             }
-            return sb.ToString();
+            return list.AsReadOnly();
         }
 
         private static string GetParameters(string param, string marshalReturnAsParam, string marshalParamsAsParam)
         {
             return
-$@"{param},
-            {marshalReturnAsParam}{marshalParamsAsParam}CallingConvention callingConvention";
+                $"{param},{Constants.NewLine}            {marshalReturnAsParam}{marshalParamsAsParam}CallingConvention callingConvention";
         }
 
         private static string GetTypeParameters(int interfaceArity, int methodArity)
@@ -62,34 +88,32 @@ $@"{param},
             int arity = interfaceArity + methodArity;
             return arity == 1 ?
                 "<X>" :
-                $"<{string.Join(", ", Enumerable.Range(1, interfaceArity).Select(x => $"X{x}"))}>";
+                $"<{string.Join(", ", Enumerable.Range(1, arity).Select(x => $"X{x}"))}>";
         }
 
         private static string GetSourceText
         (
-            in ClassDescriptor.Builder builder,
-            in InterfaceDescriptor interfaceDescriptor,
+            in ClassDescriptor.DescriptorArgs descriptorArgs,
             string attributes,
             string typeParameters,
             string parameters
         )
         {
-            bool isClosedNode = builder.References[0].IsSyntaxReferenceClosedTypeOrMethod;
-            var returnType = isClosedNode ? interfaceDescriptor.FullName : interfaceDescriptor.OriginalName.Replace('T', 'X');
-            var impl = isClosedNode ?
-                $"return new {builder.ClassName}({builder.FirstArgument});" :
-                "throw new NotImplementedException();";
+            bool isClosedNode = descriptorArgs.References[0].IsSyntaxReferenceClosedTypeOrMethod;
+            if (!isClosedNode)
+            {
+                return "";
+            }
+            attributes = $"        {attributes}";
             return
-$@"
-        {attributes}[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static {returnType} {builder.Method.Name}{typeParameters}
+     $@"{attributes}[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static {descriptorArgs.InterfaceFullName} {descriptorArgs.Method.Name}{typeParameters}
         (
             {parameters}
         )
         {{
-            {impl}
-        }}
-";
+            return new {descriptorArgs.ClassName}({descriptorArgs.FirstArgument});
+        }}";
         }
     }
 }
