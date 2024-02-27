@@ -25,7 +25,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 }
             });
             var methodReferences = methodReferencesOrDiagnostics.Select(static (x, _) => x.Item1);
-            var classDescriptors = ClassDescriptorCollection.GetImplementations(methodReferences);
+            var classDescriptors = ClassDescriptorCollection.GetDescriptors(methodReferences);
             context.RegisterImplementationSourceOutput(classDescriptors, static (context, classDescriptors) =>
             {
                 var sb = new StringBuilder

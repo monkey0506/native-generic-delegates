@@ -27,7 +27,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             }
         }
 
-        public static IncrementalValueProvider<ClassDescriptorCollection> GetImplementations
+        public static IncrementalValueProvider<ClassDescriptorCollection> GetDescriptors
         (
             IncrementalValueProvider<MethodReferenceCollection> methodReferences
         )
