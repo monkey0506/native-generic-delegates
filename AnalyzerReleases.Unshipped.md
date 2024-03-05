@@ -6,3 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 NGD1001 | Usage | Error | Constants
+NGD1002 | Usage | Error | Constants

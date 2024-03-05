@@ -51,13 +51,26 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             CallingConvention callingConvention = CallingConvention.Winapi;
             if (callingConventionArgument is not null)
             {
-                var argument = (callingConventionArgument.Value as IFieldReferenceOperation)?.Field.Name;
-                if (argument is not null)
+                bool isValid = false;
+                var field = (callingConventionArgument.Value as IFieldReferenceOperation)?.Field;
+                if (field is not null && SymbolEqualityComparer.Default.Equals(field.ContainingType, field.Type) &&
+                    Enum.TryParse(field?.Name, false, out callingConvention))
                 {
-                    _ = Enum.TryParse(argument, false, out callingConvention);
-                    // TODO: diagnostic - must use System.Runtime.InteropServices.CallingConvention literal value
+                    isValid = true;
                 }
-                // TODO: diagnostic - must use System.Runtime.InteropServices.CallingConvention literal value
+                if (!isValid)
+                {
+                    callingConvention = CallingConvention.Winapi;
+                    diagnostics.Add
+                    (
+                        Diagnostic.Create
+                        (
+                            Constants.Diagnostics.NGD1002,
+                            callingConventionArgument.Syntax.GetLocation(),
+                            callingConventionArgument.Parameter!.Name
+                        )
+                    );
+                }
             }
             CallingConvention = callingConvention;
             MarshalInfo = new
