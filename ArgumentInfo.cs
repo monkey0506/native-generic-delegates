@@ -51,10 +51,10 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             CallingConvention callingConvention = CallingConvention.Winapi;
             if (callingConventionArgument is not null)
             {
-                var argument = (callingConventionArgument.Value as IFieldReferenceOperation)?.Field.ToDisplayString();
+                var argument = (callingConventionArgument.Value as IFieldReferenceOperation)?.Field.Name;
                 if (argument is not null)
                 {
-                    _ = Enum.TryParse(argument.Substring(argument.LastIndexOf('.') + 1), false, out callingConvention);
+                    _ = Enum.TryParse(argument, false, out callingConvention);
                     // TODO: diagnostic - must use System.Runtime.InteropServices.CallingConvention literal value
                 }
                 // TODO: diagnostic - must use System.Runtime.InteropServices.CallingConvention literal value
