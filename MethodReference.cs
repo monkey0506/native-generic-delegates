@@ -15,13 +15,10 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         public readonly ArgumentInfo ArgumentInfo;
         public readonly int Character;
         public readonly string FilePath;
-        public readonly INamedTypeSymbol InterfaceSymbol;
-        public readonly int InvokeParameterCount;
-        public readonly bool IsAction;
-        public readonly bool IsFromFunctionPointer;
+        public readonly InterfaceDescriptor Interface;
         public readonly bool IsSyntaxReferenceClosedTypeOrMethod;
         public readonly int Line;
-        public readonly IMethodSymbol Method;
+        public readonly MethodDescriptor Method;
 
         public static bool operator ==(MethodReference left, MethodReference right) => left.Equals(right);
         public static bool operator !=(MethodReference left, MethodReference right) => !(left == right);
@@ -74,7 +71,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         private MethodReference
         (
             INamedTypeSymbol interfaceSymbol,
-            IMethodSymbol method,
+            IMethodSymbol methodSymbol,
             SemanticModel semanticModel,
             InvocationExpressionSyntax invocationExpressionSyntax,
             bool isSyntaxReferenceClosedTypeOrMethod,
@@ -82,29 +79,23 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             CancellationToken cancellationToken
         )
         {
-            var interfaceType = method.ContainingType;
-            bool isAction = interfaceType.Name.Contains("Action");
-            int invokeParameterCount = interfaceType.Arity - (isAction ? 0 : 1);
             var methodNode = ((MemberAccessExpressionSyntax)invocationExpressionSyntax.Expression).Name;
             var linePosition = methodNode.GetLocation().GetLineSpan().Span.Start;
+            Interface = new InterfaceDescriptor(interfaceSymbol);
             ArgumentInfo = new
             (
                 invocationExpressionSyntax,
                 semanticModel,
-                invokeParameterCount,
+                Interface.InvokeParameterCount,
                 diagnostics,
                 cancellationToken
             );
             Character = linePosition.Character + 1;
             FilePath = invocationExpressionSyntax.SyntaxTree.FilePath;
-            InterfaceSymbol = interfaceSymbol;
-            InvokeParameterCount = invokeParameterCount;
-            IsAction = isAction;
-            IsFromFunctionPointer = method.Name == Constants.FromFunctionPointerIdentifier;
             IsSyntaxReferenceClosedTypeOrMethod = isSyntaxReferenceClosedTypeOrMethod;
             Line = linePosition.Line + 1;
-            Method = method;
-            hashCode = Hash.Combine(Character, FilePath, Line, interfaceSymbol.TypeArguments);
+            Method = new MethodDescriptor(Interface.FullName, methodSymbol);
+            hashCode = Hash.Combine(Character, FilePath, Line, Interface);
         }
 
         public override bool Equals(object obj)
@@ -120,20 +111,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 {
                     return false;
                 }
-                var typeArguments = InterfaceSymbol.TypeArguments;
-                var otherTypeArguments = other.InterfaceSymbol.TypeArguments;
-                if (typeArguments.Length != otherTypeArguments.Length)
-                {
-                    return false;
-                }
-                for (int i = 0; i < typeArguments.Length; ++i)
-                {
-                    if (!SymbolEqualityComparer.Default.Equals(typeArguments[i], otherTypeArguments[i]))
-                    {
-                        return false;
-                    }
-                }
-                throw new NotSupportedException(typeArguments[0].ToDisplayString());
+                return Interface == other.Interface;
             }
             else if (other.IsSyntaxReferenceClosedTypeOrMethod)
             {

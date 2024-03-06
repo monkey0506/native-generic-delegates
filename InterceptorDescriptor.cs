@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
@@ -21,26 +20,26 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         {
             string closedReferenceAttributes =
                 string.Join($"{Constants.NewLine}        ", GetAttributes(descriptorArgs.References));
-            string interfaceTypeParameters = GetTypeParameters(descriptorArgs.InterfaceSymbol.Arity, 0);
-            string marshalParamsAsParam = descriptorArgs.InvokeParameterCount == 0 ?
+            string interfaceTypeParameters = GetTypeParameters(descriptorArgs.Interface.Arity, 0);
+            string marshalParamsAsParam = descriptorArgs.Interface.InvokeParameterCount == 0 ?
                 "" :
                 $"MarshalAsAttribute[] marshalParamsAs,{Constants.NewLine}            ";
-            string marshalReturnAsParam = descriptorArgs.IsAction switch
+            string marshalReturnAsParam = descriptorArgs.Interface.IsAction switch
             {
                 true => "",
                 _ => $@"MarshalAsAttribute marshalReturnAs,{Constants.NewLine}            ",
             };
             ClassName = descriptorArgs.ClassName;
             FirstArgument = descriptorArgs.FirstArgument;
-            InterfaceName = $"{descriptorArgs.InterfaceName}{interfaceTypeParameters}";
+            InterfaceName = $"{descriptorArgs.Interface.Name}{interfaceTypeParameters}";
             InterceptsMethod = descriptorArgs.Method.Name;
             OpenReferenceAttributes = GetAttributes(descriptorArgs.References, closedTypes: false);
-            TypeArguments = descriptorArgs.InterfaceSymbol.TypeArguments.Select(x => x.ToDisplayString()).ToImmutableList();
-            TypeParameters = GetTypeParameters(descriptorArgs.InterfaceSymbol.Arity, descriptorArgs.Method.Arity);
+            TypeArguments = descriptorArgs.Interface.TypeArguments;
+            TypeParameters = GetTypeParameters(descriptorArgs.Interface.Arity, descriptorArgs.Method.Arity);
             MethodHash = Hash.Combine
             (
-                descriptorArgs.InterfaceSymbol.Name,
-                descriptorArgs.InterfaceSymbol.Arity,
+                descriptorArgs.Interface.Name,
+                descriptorArgs.Interface.Arity,
                 descriptorArgs.Method.Name,
                 descriptorArgs.ArgumentInfo
             );
@@ -107,7 +106,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             attributes = $"        {attributes}";
             return
      $@"{attributes}[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static {descriptorArgs.InterfaceFullName} {descriptorArgs.Method.Name}{typeParameters}
+        public static {descriptorArgs.Interface.FullName} {descriptorArgs.Method.Name}{typeParameters}
         (
             {parameters}
         )

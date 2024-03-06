@@ -1,5 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -13,21 +12,17 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         public ClassDescriptor
         (
-            IMethodSymbol method,
-            in ArgumentInfo argumentInfo,
-            int invokeParameterCount,
-            bool isAction,
-            bool isFromFunctionPointer,
+            InterfaceDescriptor interfaceDescriptor,
+            MethodDescriptor methodDescriptor,
+            ArgumentInfo argumentInfo,
             IReadOnlyList<MethodReference> references
         )
         {
             var descriptorArgs = new DescriptorArgs
             (
-                method,
+                in interfaceDescriptor,
+                in methodDescriptor,
                 in argumentInfo,
-                invokeParameterCount,
-                isAction,
-                isFromFunctionPointer,
                 references
             );
             Interceptor = new InterceptorDescriptor(in descriptorArgs);
@@ -64,13 +59,13 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
         private static string GetInvokeParameters(in DescriptorArgs descriptorArgs)
         {
-            if (descriptorArgs.InvokeParameterCount == 0)
+            var invokeParameterCount = descriptorArgs.Interface.InvokeParameterCount;
+            if (invokeParameterCount == 0)
             {
                 return "()";
             }
-            var invokeParameterCount = descriptorArgs.InvokeParameterCount;
             var marshalParamsAs = descriptorArgs.ArgumentInfo.MarshalInfo.MarshalParamsAs;
-            var typeArguments = descriptorArgs.InterfaceSymbol.TypeArguments;
+            var typeArguments = descriptorArgs.Interface.TypeArguments;
             var sb = new StringBuilder($"{Constants.NewLine}        ({Constants.NewLine}            ");
             for (int i = 0, j = 1; i < invokeParameterCount; ++i, ++j)
             {
@@ -78,7 +73,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 {
                     _ = sb.Append($"[MarshalAs({marshalParamsAs[i]})]{Constants.NewLine}            ");
                 }
-                _ = sb.Append($@"{typeArguments[i].ToDisplayString()} t{(invokeParameterCount == 1 ? "" : j.ToString())}");
+                _ = sb.Append($@"{typeArguments[i]} t{(invokeParameterCount == 1 ? "" : j.ToString())}");
                 if (j < invokeParameterCount)
                 {
                     _ = sb.Append($",{Constants.NewLine}            ");
@@ -95,11 +90,11 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         private string GetSourceText(in DescriptorArgs descriptorArgs)
         {
             CallingConvention callingConvention = descriptorArgs.ArgumentInfo.CallingConvention;
-            string constructor = descriptorArgs.IsFromFunctionPointer ?
+            string constructor = descriptorArgs.Method.IsFromFunctionPointer ?
                 GetFromFunctionPointerConstructor(descriptorArgs.ClassName) :
                 GetFromDelegateConstructor(in descriptorArgs);
-            string interfaceFullName = descriptorArgs.InterfaceFullName;
-            int invokeParameterCount = descriptorArgs.InvokeParameterCount;
+            string interfaceFullName = descriptorArgs.Interface.FullName;
+            int invokeParameterCount = descriptorArgs.Interface.InvokeParameterCount;
             string invokeParameters = GetInvokeParameters(in descriptorArgs);
             string className = descriptorArgs.ClassName;
             string returnMarshalAsAttribute = descriptorArgs.ArgumentInfo.MarshalInfo.MarshalReturnAs is null ?
@@ -107,7 +102,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 $"[return: MarshalAs({descriptorArgs.ArgumentInfo.MarshalInfo.MarshalReturnAs})]{Constants.NewLine}        ";
             string? returnKeyword;
             string? returnType;
-            switch (descriptorArgs.IsAction)
+            switch (descriptorArgs.Interface.IsAction)
             {
                 case true:
                     returnKeyword = "";
@@ -115,7 +110,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                     break;
                 default:
                     returnKeyword = "return ";
-                    returnType = descriptorArgs.InterfaceSymbol.TypeArguments.Last().ToDisplayString();
+                    returnType = descriptorArgs.Interface.TypeArguments.Last();
                     break;
             }
             return

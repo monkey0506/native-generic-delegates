@@ -18,9 +18,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
 
             public bool Equals(MethodReference x, MethodReference y)
             {
-                return x.ArgumentInfo == y.ArgumentInfo &&
-                    SymbolEqualityComparer.Default.Equals(x.InterfaceSymbol, y.InterfaceSymbol) &&
-                    SymbolEqualityComparer.Default.Equals(x.Method, y.Method);
+                return x.ArgumentInfo == y.ArgumentInfo && x.Method == y.Method;
             }
 
             public int GetHashCode(MethodReference obj)
@@ -49,11 +47,9 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                     cancellationToken.ThrowIfCancellationRequested();
                     var classDescriptor = new ClassDescriptor
                     (
+                        kv.Key.Interface,
                         kv.Key.Method,
                         kv.Key.ArgumentInfo,
-                        kv.Key.InvokeParameterCount,
-                        kv.Key.IsAction,
-                        kv.Key.IsFromFunctionPointer,
                         kv.Value.AsReadOnly()
                     );
                     list.Add(classDescriptor);
