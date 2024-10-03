@@ -15,6 +15,18 @@ namespace Monkeymoto.NativeGenericDelegates
         private readonly int hashCode;
         private readonly ImmutableHashSet<GenericSymbolReference> references;
 
+        public static bool operator ==
+        (
+            InterfaceOrMethodReferenceCollection left,
+            InterfaceOrMethodReferenceCollection right
+        ) => left.Equals(right);
+
+        public static bool operator !=
+        (
+            InterfaceOrMethodReferenceCollection left,
+            InterfaceOrMethodReferenceCollection right
+        ) => !(left == right);
+
         public static IncrementalValueProvider<InterfaceOrMethodReferenceCollection> GetInterfaceOrMethodReferences
         (
             IncrementalGeneratorInitializationContext context,

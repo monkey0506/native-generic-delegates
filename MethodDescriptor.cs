@@ -17,6 +17,10 @@ namespace Monkeymoto.NativeGenericDelegates
         public string Name { get; }
         public string Parameters { get; }
 
+        public static bool operator ==(MethodDescriptor? left, MethodDescriptor? right) =>
+            left?.Equals(right) ?? right is null;
+        public static bool operator !=(MethodDescriptor? left, MethodDescriptor? right) => !(left == right);
+
         private static string GetFullName(IMethodSymbol methodSymbol)
         {
             if (methodSymbol.Arity == 0)

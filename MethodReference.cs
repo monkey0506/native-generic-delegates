@@ -21,6 +21,10 @@ namespace Monkeymoto.NativeGenericDelegates
         public DelegateMarshalling Marshalling { get; }
         public MethodDescriptor Method { get; }
 
+        public static bool operator ==(MethodReference? left, MethodReference? right) =>
+            left?.Equals(right) ?? right is null;
+        public static bool operator !=(MethodReference? left, MethodReference? right) => !(left == right);
+
         public static MethodReference? GetReference
         (
             GenericSymbolReference interfaceOrMethodReference,
