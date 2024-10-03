@@ -79,12 +79,12 @@ namespace Monkeymoto.NativeGenericDelegates
             {
                 return "()";
             }
-            var marshalParamsAs = Marshalling.MarshalParamsAs;
+            var marshalParamsAs = Marshalling.MarshalParamsAs ?? [];
             var typeArguments = Method.ContainingInterface.TypeArguments;
             var sb = new StringBuilder($"{Constants.NewLineIndent2}({Constants.NewLineIndent3}");
             for (int i = 0, j = 1; i < invokeParameterCount; ++i, ++j)
             {
-                if (marshalParamsAs?[i] is not null)
+                if ((i < marshalParamsAs.Count) && (marshalParamsAs[i] is not null))
                 {
                     _ = sb.Append($"[MarshalAs({marshalParamsAs[i]})]{Constants.NewLineIndent3}");
                 }
