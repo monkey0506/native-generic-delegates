@@ -5,8 +5,11 @@ using System.Text;
 
 namespace Monkeymoto.NativeGenericDelegates
 {
-    internal sealed class ImplementationClass
+    internal sealed partial class ImplementationClass : IEquatable<ImplementationClass>
     {
+        private readonly int hashCode;
+
+        public ClassID ID { get; }
         public string ClassName { get; }
         public ClosedGenericInterceptor? Interceptor { get; }
         public DelegateMarshalling Marshalling { get; }
@@ -23,7 +26,8 @@ namespace Monkeymoto.NativeGenericDelegates
         )
         {
             var category = method.ContainingInterface.Category;
-            ClassName = $"Native{category}_{Guid.NewGuid():N}";
+            ID = new(method, marshalling);
+            ClassName = $"Native{category}_{ID}";
             Marshalling = marshalling;
             Method = method;
             if (!isInterfaceOrMethodOpenGeneric)
@@ -32,10 +36,15 @@ namespace Monkeymoto.NativeGenericDelegates
             }
             else
             {
-                openGenericInterceptorsBuilder.Add(this, methodReferences, marshalling);
+                openGenericInterceptorsBuilder.Add(this, methodReferences);
             }
             SourceText = GetSourceText();
+            hashCode = SourceText.GetHashCode();
         }
+
+        public override bool Equals(object? obj) => obj is ImplementationClass other && Equals(other);
+        public bool Equals(ImplementationClass? other) => (other is not null) && (SourceText == other.SourceText);
+        public override int GetHashCode() => hashCode;
 
         private string GetFromDelegateConstructor()
         {

@@ -4,16 +4,9 @@ namespace Monkeymoto.NativeGenericDelegates
 {
     internal sealed partial class OpenGenericInterceptors
     {
-        private readonly struct Key(MethodDescriptor method, DelegateMarshalling marshalling) : IEquatable<Key>
+        private readonly struct Key(ImplementationClass implementationClass) : IEquatable<Key>
         {
-            private readonly int hashCode = Hash.Combine
-            (
-                method.Name,
-                method.Arity,
-                marshalling,
-                method.ContainingInterface.Name,
-                method.ContainingInterface.Arity
-            );
+            private readonly int hashCode = implementationClass.ID.GetHashCode();
 
             public static bool operator ==(Key left, Key right) => left.Equals(right);
             public static bool operator !=(Key left, Key right) => !(left == right);
