@@ -1,32 +1,51 @@
-﻿using Microsoft.CodeAnalysis;
-using System.Linq;
+﻿// NativeGenericDelegates
+// https://github.com/monkey0506/native-generic-delegates
+// Copyright(C) 2022-2023 Michael Rittenhouse monkey0506@gmail.com
+
+// This C# project and all associated project files are hereby committed to the
+// public domain pursuant to the WTFPL http://www.wtfpl.net/about/ without
+// warranty of any kind, express or implied, including but not limited to
+// fitness for a particular purpose. Attribution is appreciated, but not
+// required.
+
+// About this version
+//
+// v1.0.0 of this project aimed to provide dynamically instanciated Delegate
+// objects that implemented one of the provided interfaces, but relied on
+// classes from System.Reflection.Emit, which is incompatible with some .NET
+// platforms (those using AOT compilation).
+//
+// This version instead aims to create classes that implement the provided
+// interfaces at compile-time, using an incremental source generator. This
+// version is a work-in-progress that may have bugs and is not feature
+// complete. Importantly, the generated class objects are not instances of the
+// Delegate or MulticastDelegate types.
+
+using Microsoft.CodeAnalysis;
 using System.Text;
 
-namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
+namespace Monkeymoto.NativeGenericDelegates
 {
     [Generator]
-    internal sealed class Generator : IIncrementalGenerator
+    public class Generator : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             context.RegisterPostInitializationOutput(static context =>
-                context.AddSource(Constants.DeclarationsSourceFileName, PostInitialization.GetSource()));
+                context.AddSource(Constants.DeclarationsSourceFileName, PostInitialization.GetSourceText()));
             var interfaceOrMethodSymbols = InterfaceOrMethodSymbolCollection.GetSymbols(context.CompilationProvider);
             var interfaceOrMethodReferences =
-                InterfaceOrMethodReferenceCollection.GetReferences(context, interfaceOrMethodSymbols);
-            var methodReferencesOrDiagnostics =
-                MethodReferenceCollection.GetReferencesOrDiagnostics(interfaceOrMethodReferences);
-            var diagnostics = methodReferencesOrDiagnostics.Select(static (x, _) => x.Item2);
-            context.RegisterSourceOutput(diagnostics, static (context, diagnostics) =>
+                InterfaceOrMethodReferenceCollection.GetInterfaceOrMethodReferences(context, interfaceOrMethodSymbols);
+            var methodReferences = MethodReferenceCollection.GetMethodReferences(interfaceOrMethodReferences);
+            context.RegisterSourceOutput(methodReferences, static (context, methodReferences) =>
             {
-                foreach (var diagnostic in diagnostics)
+                foreach (var diagnostic in methodReferences.Diagnostics)
                 {
                     context.ReportDiagnostic(diagnostic);
                 }
             });
-            var methodReferences = methodReferencesOrDiagnostics.Select(static (x, _) => x.Item1);
-            var classDescriptors = ClassDescriptorCollection.GetDescriptors(methodReferences);
-            context.RegisterImplementationSourceOutput(classDescriptors, static (context, classDescriptors) =>
+            var implementationClasses = ImplementationClassCollection.GetImplementationClasses(methodReferences);
+            context.RegisterImplementationSourceOutput(implementationClasses, static (context, implementationClasses) =>
             {
                 var sb = new StringBuilder
                 (
@@ -40,11 +59,15 @@ using System.Runtime.InteropServices;
 namespace {Constants.RootNamespace}
 {{"
                 );
-                foreach (var classDescriptor in classDescriptors)
+                foreach (var implementationClass in implementationClasses)
                 {
-                    _ = sb.AppendLine().Append("    ").Append(classDescriptor.SourceText);
+                    _ = sb.Append(Constants.NewLineIndent1).Append(implementationClass.SourceText);
                 }
-                _ = sb.Append(classDescriptors.GetOpenInterceptorsSourceText()).AppendLine("}");
+                _ = sb.AppendLine(implementationClasses.GetOpenGenericInterceptorsSourceText());
+                int i = sb.Length - 1;
+                for (; (i >= 0) && char.IsWhiteSpace(sb[i]); --i) { }
+                sb.Length = i + 1;
+                _ = sb.AppendLine().AppendLine("}");
                 context.AddSource(Constants.SourceFileName, sb.ToString());
             });
         }

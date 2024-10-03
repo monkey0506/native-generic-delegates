@@ -1,42 +1,77 @@
 ﻿using Microsoft.CodeAnalysis;
 using System;
+using System.Linq;
 
-namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
+namespace Monkeymoto.NativeGenericDelegates
 {
-    internal readonly struct MethodDescriptor : IEquatable<MethodDescriptor>
+    internal sealed class MethodDescriptor : IEquatable<MethodDescriptor>
     {
         private readonly int hashCode;
 
-        public readonly int Arity;
-        public readonly string ContainingInterface;
-        public readonly bool IsFromFunctionPointer;
-        public readonly string Name;
+        public int Arity { get; }
+        public InterfaceDescriptor ContainingInterface { get; }
+        public string FirstParameterName { get; }
+        public string FirstParameterType { get; }
+        public string FullName { get; }
+        public bool IsFromFunctionPointer { get; }
+        public string Name { get; }
+        public string Parameters { get; }
 
-        public static bool operator ==(MethodDescriptor left, MethodDescriptor right) => left.Equals(right);
-        public static bool operator !=(MethodDescriptor left, MethodDescriptor right) => !(left == right);
-
-        public MethodDescriptor(string containingInterface, IMethodSymbol methodSymbol)
+        private static string GetFullName(IMethodSymbol methodSymbol)
         {
+            if (methodSymbol.Arity == 0)
+            {
+                return methodSymbol.Name;
+            }
+            var typeParameters = methodSymbol.TypeParameters.Select(x => x.ToDisplayString());
+            return $"{methodSymbol.Name}<{string.Join(", ", typeParameters)}>";
+        }
+
+        public MethodDescriptor
+        (
+            InterfaceDescriptor containingInterface,
+            IMethodSymbol methodSymbol
+        )
+        {
+            bool isFromFunctionPointer = methodSymbol.Name == Constants.FromFunctionPointerIdentifier;
+            if (isFromFunctionPointer)
+            {
+                FirstParameterName = "functionPtr";
+                FirstParameterType = "nint";
+                IsFromFunctionPointer = true;
+            }
+            else
+            {
+                var category = containingInterface.Category;
+                FirstParameterName = category.ToLower();
+                FirstParameterType = $"{category}{containingInterface.TypeArgumentList}";
+                IsFromFunctionPointer = false;
+            }
             Arity = methodSymbol.Arity;
             ContainingInterface = containingInterface;
-            IsFromFunctionPointer = methodSymbol.Name == Constants.FromFunctionPointerIdentifier;
+            FullName = GetFullName(methodSymbol);
             Name = methodSymbol.Name;
+            Parameters = GetParameters();
             hashCode = Hash.Combine(Arity, ContainingInterface, Name);
         }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is MethodDescriptor other && Equals(other);
-        }
+        public override bool Equals(object? obj) => obj is MethodDescriptor other && Equals(other);
+        public bool Equals(MethodDescriptor? other) =>
+            (other is not null) && (Arity == other.Arity) && (ContainingInterface == other.ContainingInterface) &&
+            (Name == other.Name);
+        public override int GetHashCode() => hashCode;
 
-        public bool Equals(MethodDescriptor other)
+        private string GetParameters()
         {
-            return (Arity == other.Arity) && (ContainingInterface == other.ContainingInterface) && (Name == other.Name);
-        }
-
-        public override int GetHashCode()
-        {
-            return hashCode;
+            var marshalReturnAsParam = !ContainingInterface.IsAction ?
+                $"MarshalAsAttribute marshalReturnAs,{Constants.NewLineIndent3}" :
+                string.Empty;
+            var marshalParamsAsParam = ContainingInterface.InvokeParameterCount != 0 ?
+                $"MarshalAsAttribute[] marshalParamsAs,{Constants.NewLineIndent3}" :
+                string.Empty;
+            return
+                $"{FirstParameterType} {FirstParameterName},{Constants.NewLineIndent3}{marshalReturnAsParam}" +
+                $"{marshalParamsAsParam}CallingConvention callingConvention";
         }
     }
 }

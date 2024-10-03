@@ -4,8 +4,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
-namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
+namespace Monkeymoto.NativeGenericDelegates
 {
     internal readonly struct InterfaceOrMethodReferenceCollection :
         IEquatable<InterfaceOrMethodReferenceCollection>,
@@ -14,12 +15,7 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         private readonly int hashCode;
         private readonly ImmutableHashSet<GenericSymbolReference> references;
 
-        public static bool operator ==(InterfaceOrMethodReferenceCollection left, InterfaceOrMethodReferenceCollection right) =>
-            left.Equals(right);
-        public static bool operator !=(InterfaceOrMethodReferenceCollection left, InterfaceOrMethodReferenceCollection right) =>
-            !(left == right);
-
-        public static IncrementalValueProvider<InterfaceOrMethodReferenceCollection> GetReferences
+        public static IncrementalValueProvider<InterfaceOrMethodReferenceCollection> GetInterfaceOrMethodReferences
         (
             IncrementalGeneratorInitializationContext context,
             IncrementalValueProvider<InterfaceOrMethodSymbolCollection> symbolsProvider
@@ -30,13 +26,9 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             {
                 var symbols = x.Left;
                 using var tree = x.Right; // Dispose tree after we extract the symbol references we need
-                HashSet<GenericSymbolReference> references = [];
-                foreach (var symbol in symbols)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    references.UnionWith(tree.GetBranchesBySymbol(symbol, cancellationToken));
-                }
-                return new InterfaceOrMethodReferenceCollection(references.ToImmutableHashSet());
+                var references = ImmutableHashSet.CreateBuilder<GenericSymbolReference>();
+                references.UnionWith(symbols.SelectMany(x => tree.GetBranchesBySymbol(x, cancellationToken)));
+                return new InterfaceOrMethodReferenceCollection(references.ToImmutable());
             });
         }
 
@@ -46,29 +38,10 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             hashCode = Hash.Combine(references);
         }
 
-        public override bool Equals(object obj)
-        {
-            return obj is InterfaceOrMethodReferenceCollection other && Equals(other);
-        }
-
-        public bool Equals(InterfaceOrMethodReferenceCollection other)
-        {
-            return references.SetEquals(other.references);
-        }
-
-        public IEnumerator<GenericSymbolReference> GetEnumerator()
-        {
-            return references.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public override int GetHashCode()
-        {
-            return hashCode;
-        }
+        public override bool Equals(object? obj) => obj is InterfaceOrMethodReferenceCollection other && Equals(other);
+        public bool Equals(InterfaceOrMethodReferenceCollection other) => references.SetEquals(other.references);
+        public IEnumerator<GenericSymbolReference> GetEnumerator() => references.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public override int GetHashCode() => hashCode;
     }
 }

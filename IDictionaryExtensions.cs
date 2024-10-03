@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
+namespace Monkeymoto.NativeGenericDelegates
 {
     internal static class IDictionaryExtensions
     {
         [return: MaybeNull]
-        public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> _this, TKey key) where TValue : new()
+        public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> _this, TKey key)
+            where TValue : new()
         {
             return GetOrCreate(_this, key, () => new())!;
         }

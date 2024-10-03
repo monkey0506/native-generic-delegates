@@ -1,26 +1,16 @@
 ﻿using System.Linq;
+using System.Runtime.CompilerServices;
 
-namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
+namespace Monkeymoto.NativeGenericDelegates
 {
     internal static partial class Constants
     {
         internal static class Funcs
         {
-            public static string FromDelegateIdentifier = "FromFunc";
-
-            public static readonly string[] QualifiedTypeParameters =
-            [
-                "out TResult",
-                .. Actions.QualifiedTypeParameters.Skip(1).Select(x => $"{x}, out TResult")
-            ];
-
-            public static readonly string[] TypeParameters =
-            [
-                "TResult",
-                .. Shared.TypeParameters.Skip(1).Select(x => $"{x}, TResult")
-            ];
-
-            public static readonly string[] Interfaces = [.. QualifiedTypeParameters.Select(x => $"INativeFunc<{x}>")];
+            static Funcs()
+            {
+                RuntimeHelpers.RunClassConstructor(typeof(Constants).TypeHandle);
+            }
 
             public static readonly string[] MetadataNames =
             [
@@ -41,6 +31,18 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 $"{RootNamespace}.INativeFunc`15",
                 $"{RootNamespace}.INativeFunc`16",
                 $"{RootNamespace}.INativeFunc`17",
+            ];
+
+            public static readonly string[] QualifiedTypeParameters =
+            [
+                "out TResult",
+                .. Constants.QualifiedTypeParameters.Skip(1).Select(x => $"{x}, out TResult")
+            ];
+
+            public static readonly string[] TypeParameters =
+            [
+                "TResult",
+                .. Constants.TypeParameters.Skip(1).Select(x => $"{x}, TResult")
             ];
         }
     }
