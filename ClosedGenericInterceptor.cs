@@ -15,6 +15,11 @@ namespace Monkeymoto.NativeGenericDelegates
         public MethodDescriptor InterceptsMethod { get; }
         public string SourceText { get; }
 
+        public static bool operator ==(ClosedGenericInterceptor? left, ClosedGenericInterceptor? right) =>
+            left?.Equals(right) ?? right is null;
+        public static bool operator !=(ClosedGenericInterceptor? left, ClosedGenericInterceptor? right) =>
+            !(left == right);
+
         public ClosedGenericInterceptor
         (
             MethodDescriptor interceptsMethod,
