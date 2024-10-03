@@ -1,12 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
 namespace Monkeymoto.NativeGenericDelegates
 {
-    internal sealed class ClosedGenericInterceptor
+    internal sealed class ClosedGenericInterceptor : IEquatable<ClosedGenericInterceptor>
     {
+        private readonly int hashCode;
+
         public ImplementationClass ImplementationClass { get; }
         public ImmutableArray<InterceptedMethodReference> InterceptedMethodReferences { get; }
         public MethodDescriptor InterceptsMethod { get; }
@@ -23,7 +26,12 @@ namespace Monkeymoto.NativeGenericDelegates
             InterceptsMethod = interceptsMethod;
             InterceptedMethodReferences = [.. methodReferences.Select(x => new InterceptedMethodReference(x, this))];
             SourceText = GetSourceText();
+            hashCode = SourceText.GetHashCode();
         }
+
+        public override bool Equals(object? obj) => obj is ClosedGenericInterceptor other && Equals(other);
+        public bool Equals(ClosedGenericInterceptor? other) => (other is not null) && (SourceText == other.SourceText);
+        public override int GetHashCode() => hashCode;
 
         private string GetSourceText()
         {
