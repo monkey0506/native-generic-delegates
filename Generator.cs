@@ -1,6 +1,6 @@
 ﻿// NativeGenericDelegates
 // https://github.com/monkey0506/native-generic-delegates
-// Copyright(C) 2022-2023 Michael Rittenhouse monkey0506@gmail.com
+// Copyright(C) 2022-2024 Michael Rittenhouse monkey0506@gmail.com
 
 // This C# project and all associated project files are hereby committed to the
 // public domain pursuant to the WTFPL http://www.wtfpl.net/about/ without

@@ -1,14 +1,4 @@
-﻿// NativeGenericDelegates
-// https://github.com/monkey0506/native-generic-delegates
-// Copyright(C) 2022-2023 Michael Rittenhouse monkey0506@gmail.com
-
-// This C# project and all associated project files are hereby committed to the
-// public domain pursuant to the WTFPL http://www.wtfpl.net/about/ without
-// warranty of any kind, express or implied, including but not limited to
-// fitness for a particular purpose. Attribution is appreciated, but not
-// required.
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using System;
 using System.Linq;
 
