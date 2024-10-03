@@ -56,7 +56,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 );
                 _ = sb.AppendLine().Append("    ").AppendLine
                 (
- $@"file static class NativeGenericDelegates_{(methodHash < 0 ? $"${-methodHash}" : $"U{methodHash}")}
+ $@"file static class NativeGenericDelegates_{(methodHash < 0 ? $"S{-methodHash}" : $"U{methodHash}")}
     {{"
                 );
                 foreach (var attribute in attributes[kv.Key])
