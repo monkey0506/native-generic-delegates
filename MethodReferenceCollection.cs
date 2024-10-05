@@ -4,70 +4,60 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
+namespace Monkeymoto.NativeGenericDelegates
 {
-    internal readonly struct MethodReferenceCollection : IEquatable<MethodReferenceCollection>, IEnumerable<MethodReference>
+    internal readonly struct MethodReferenceCollection :
+        IEquatable<MethodReferenceCollection>,
+        IEnumerable<MethodReference>
     {
         private readonly int hashCode;
         private readonly ImmutableHashSet<MethodReference> references;
 
-        public static bool operator ==(MethodReferenceCollection left, MethodReferenceCollection right) => left.Equals(right);
-        public static bool operator !=(MethodReferenceCollection left, MethodReferenceCollection right) => !(left == right);
+        public IReadOnlyList<Diagnostic> Diagnostics { get; }
 
-        public static IncrementalValueProvider<(MethodReferenceCollection, IReadOnlyList<Diagnostic>)> GetReferencesOrDiagnostics
+        public static bool operator ==(MethodReferenceCollection left, MethodReferenceCollection right) =>
+            left.Equals(right);
+        public static bool operator !=(MethodReferenceCollection left, MethodReferenceCollection right) =>
+            !(left == right);
+
+        public static IncrementalValueProvider<MethodReferenceCollection> GetMethodReferences
         (
-            IncrementalValueProvider<InterfaceOrMethodReferenceCollection> referencesProvider
+            IncrementalValueProvider<InterfaceOrMethodReferenceCollection> interfaceOrMethodReferencesProvider
+        ) => interfaceOrMethodReferencesProvider.Select(static (interfaceOrMethodReferences, cancellationToken) =>
+        {
+            var builder = ImmutableHashSet.CreateBuilder<MethodReference>();
+            var diagnostics = new List<Diagnostic>();
+            foreach (var interfaceOrMethodReference in interfaceOrMethodReferences)
+            {
+                var methodReference =
+                    MethodReference.GetReference(interfaceOrMethodReference, diagnostics, cancellationToken);
+                if (methodReference is not null)
+                {
+                    _ = builder.Add(methodReference);
+                }
+            }
+            return new MethodReferenceCollection
+            (
+                builder.ToImmutable(),
+                diagnostics.AsReadOnly()
+            );
+        });
+
+        private MethodReferenceCollection
+        (
+            ImmutableHashSet<MethodReference> references,
+            IReadOnlyList<Diagnostic> diagnostics
         )
         {
-            return referencesProvider.Select(static (references, cancellationToken) =>
-            {
-                HashSet<MethodReference> methodReferences = [];
-                List<Diagnostic> diagnostics = [];
-                foreach (var reference in references)
-                {
-                    var methodReference = MethodReference.GetReference(reference, diagnostics, cancellationToken);
-                    if (methodReference is not null)
-                    {
-                        _ = methodReferences.Add(methodReference.Value);
-                    }
-                }
-                return
-                (
-                    new MethodReferenceCollection(methodReferences.ToImmutableHashSet()),
-                    (IReadOnlyList<Diagnostic>)diagnostics.AsReadOnly()
-                );
-            });
-        }
-
-        private MethodReferenceCollection(ImmutableHashSet<MethodReference> references)
-        {
             this.references = references;
+            Diagnostics = diagnostics;
             hashCode = Hash.Combine(references);
         }
 
-        public override bool Equals(object obj)
-        {
-            return obj is MethodReferenceCollection other && Equals(other);
-        }
-
-        public bool Equals(MethodReferenceCollection other)
-        {
-            return references.SetEquals(other.references);
-        }
-
-        public override int GetHashCode()
-        {
-            return hashCode;
-        }
-
-        public IEnumerator<MethodReference> GetEnumerator()
-        {
-            return references.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        public override bool Equals(object? obj) => obj is MethodReferenceCollection other && Equals(other);
+        public bool Equals(MethodReferenceCollection other) => references.SetEquals(other.references);
+        public IEnumerator<MethodReference> GetEnumerator() => references.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public override int GetHashCode() => hashCode;
     }
 }

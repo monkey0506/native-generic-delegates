@@ -1,22 +1,9 @@
-﻿using System.Linq;
-
-namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
+﻿namespace Monkeymoto.NativeGenericDelegates
 {
     internal static partial class Constants
     {
         internal static class Actions
         {
-            public static string FromDelegateIdentifier = "FromAction";
-
-            public static readonly string[] TypeParameters = Shared.TypeParameters;
-            public static readonly string[] QualifiedTypeParameters = Shared.QualifiedTypeParameters;
-
-            public static readonly string[] Interfaces =
-            [
-                "INativeAction",
-                .. QualifiedTypeParameters.Skip(1).Select(x => $"INativeAction<{x}>")
-            ];
-
             public static readonly string[] MetadataNames =
             [
                 $"{RootNamespace}.INativeAction",
@@ -37,6 +24,9 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 $"{RootNamespace}.INativeAction`15",
                 $"{RootNamespace}.INativeAction`16",
             ];
+
+            public static readonly string[] QualifiedTypeParameters = Constants.QualifiedTypeParameters;
+            public static readonly string[] TypeParameters = Constants.TypeParameters;
         }
     }
 }

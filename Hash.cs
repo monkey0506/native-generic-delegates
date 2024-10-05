@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
+namespace Monkeymoto.NativeGenericDelegates
 {
     internal static class Hash
     {
@@ -40,18 +40,18 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         }
 
         /// <summary>
-        /// Combines the provided hashCode codes.
+        /// Combines the provided hash codes.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// Adapted from <see href="https://stackoverflow.com/a/1646913">Quick and Simple Hash Code Combinations - Stack
-        /// Overflow</see> answer by user <see href="https://stackoverflow.com/users/22656/jon-skeet">Jon Skeet</see>, licensed
-        /// under <see href="https://creativecommons.org/licenses/by-sa/2.5/">CC BY-SA 2.5</see>. Changes have been made to
-        /// permit a variable number of hashCode codes.
+        /// Adapted from <see href="https://stackoverflow.com/a/1646913">Quick and Simple Hash Code Combinations -
+        /// Stack Overflow</see> answer by user <see href="https://stackoverflow.com/users/22656/jon-skeet">Jon
+        /// Skeet</see>, licensed under <see href="https://creativecommons.org/licenses/by-sa/2.5/">CC BY-SA 2.5</see>.
+        /// Changes have been made to permit a variable number of hash codes.
         /// </para>
         /// </remarks>
-        /// <param name="hashCodes">The hashCode codes to combine.</param>
-        /// <returns>The hashCode value generated from the provided hashCode codes.</returns>
+        /// <param name="hashCodes">The hash codes to combine.</param>
+        /// <returns>The hash code value generated from the provided hash codes.</returns>
         private static int CombineHashCodes(params int[] hashCodes)
         {
             unchecked
@@ -66,43 +66,34 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
         }
 
         public static int Combine<T>(T t) => GetHashCode(t);
+        public static int Combine<T1, T2>(T1 t1, T2 t2) => CombineHashCodes(GetHashCode(t1), GetHashCode(t2));
 
-        public static int Combine<T1, T2>(T1 t1, T2 t2)
-        {
-            return CombineHashCodes(GetHashCode(t1), GetHashCode(t2));
-        }
+        public static int Combine<T1, T2, T3>(T1 t1, T2 t2, T3 t3) =>
+            CombineHashCodes(GetHashCode(t1), GetHashCode(t2), GetHashCode(t3));
+        public static int Combine<T1, T2, T3, T4>(T1 t1, T2 t2, T3 t3, T4 t4) =>
+            CombineHashCodes(GetHashCode(t1), GetHashCode(t2), GetHashCode(t3), GetHashCode(t4));
 
-        public static int Combine<T1, T2, T3>(T1 t1, T2 t2, T3 t3)
-        {
-            return CombineHashCodes(GetHashCode(t1), GetHashCode(t2), GetHashCode(t3));
-        }
+        public static int Combine<T1, T2, T3, T4, T5>(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) => CombineHashCodes
+        (
+            GetHashCode(t1),
+            GetHashCode(t2),
+            GetHashCode(t3),
+            GetHashCode(t4),
+            GetHashCode(t5)
+        );
 
-        public static int Combine<T1, T2, T3, T4>(T1 t1, T2 t2, T3 t3, T4 t4)
-        {
-            return CombineHashCodes(GetHashCode(t1), GetHashCode(t2), GetHashCode(t3), GetHashCode(t4));
-        }
+        public static int Combine<T1, T2, T3, T4, T5, T6>(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) => CombineHashCodes
+        (
+            GetHashCode(t1),
+            GetHashCode(t2),
+            GetHashCode(t3),
+            GetHashCode(t4),
+            GetHashCode(t5),
+            GetHashCode(t6)
+        );
 
-        public static int Combine<T1, T2, T3, T4, T5>(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
-        {
-            return CombineHashCodes(GetHashCode(t1), GetHashCode(t2), GetHashCode(t3), GetHashCode(t4), GetHashCode(t5));
-        }
-
-        public static int Combine<T1, T2, T3, T4, T5, T6>(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
-        {
-            return CombineHashCodes
-            (
-                GetHashCode(t1),
-                GetHashCode(t2),
-                GetHashCode(t3),
-                GetHashCode(t4),
-                GetHashCode(t5),
-                GetHashCode(t6)
-            );
-        }
-
-        public static int Combine<T1, T2, T3, T4, T5, T6, T7>(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
-        {
-            return CombineHashCodes
+        public static int Combine<T1, T2, T3, T4, T5, T6, T7>(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7) =>
+            CombineHashCodes
             (
                 GetHashCode(t1),
                 GetHashCode(t2),
@@ -112,11 +103,19 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 GetHashCode(t6),
                 GetHashCode(t7)
             );
-        }
 
-        public static int Combine<T1, T2, T3, T4, T5, T6, T7, T8>(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
-        {
-            return CombineHashCodes
+        public static int Combine<T1, T2, T3, T4, T5, T6, T7, T8>
+        (
+            T1 t1,
+            T2 t2,
+            T3 t3,
+            T4 t4,
+            T5 t5,
+            T6 t6,
+            T7 t7,
+            T8 t8
+        ) =>
+            CombineHashCodes
             (
                 GetHashCode(t1),
                 GetHashCode(t2),
@@ -127,6 +126,5 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 GetHashCode(t7),
                 GetHashCode(t8)
             );
-        }
     }
 }

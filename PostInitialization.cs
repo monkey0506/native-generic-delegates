@@ -1,7 +1,6 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 
-namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
+namespace Monkeymoto.NativeGenericDelegates
 {
     internal static class PostInitialization
     {
@@ -12,41 +11,38 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             string? returnType;
             string? type;
             string? typeParameters;
-            switch (isAction)
+            if (isAction)
             {
-                case true:
-                    marshalReturnAsParameter = "";
-                    returnType = "void";
-                    type = "Action";
-                    if (argumentCount != 0)
-                    {
-                        qualifiedTypeParameters = $"<{Constants.Actions.QualifiedTypeParameters[argumentCount]}>";
-                        typeParameters = $"<{Constants.Actions.TypeParameters[argumentCount]}>";
-                    }
-                    else
-                    {
-                        qualifiedTypeParameters = "";
-                        typeParameters = "";
-                    }
-                    break;
-                case false:
-                    marshalReturnAsParameter = $",{Constants.NewLine}            MarshalAsAttribute? marshalReturnAs = null";
-                    qualifiedTypeParameters = $"<{Constants.Funcs.QualifiedTypeParameters[argumentCount]}>";
-                    returnType = "TResult";
-                    type = "Func";
-                    typeParameters = $"<{Constants.Funcs.TypeParameters[argumentCount]}>";
-                    break;
-                default:
-                    throw new UnreachableException();
+                marshalReturnAsParameter = string.Empty;
+                returnType = "void";
+                type = Constants.CategoryAction;
+                if (argumentCount != 0)
+                {
+                    qualifiedTypeParameters = $"<{Constants.Actions.QualifiedTypeParameters[argumentCount]}>";
+                    typeParameters = $"<{Constants.Actions.TypeParameters[argumentCount]}>";
+                }
+                else
+                {
+                    qualifiedTypeParameters = string.Empty;
+                    typeParameters = string.Empty;
+                }
+            }
+            else
+            {
+                marshalReturnAsParameter = $",{Constants.NewLineIndent3}MarshalAsAttribute? marshalReturnAs = null";
+                qualifiedTypeParameters = $"<{Constants.Funcs.QualifiedTypeParameters[argumentCount]}>";
+                returnType = "TResult";
+                type = Constants.CategoryFunc;
+                typeParameters = $"<{Constants.Funcs.TypeParameters[argumentCount]}>";
             }
             string genericType = $"{type}{typeParameters}";
             string parameters = Constants.Parameters[argumentCount];
             string typeAsArgument = type.ToLower();
             string callingConvention =
-                $",{Constants.NewLine}            CallingConvention callingConvention = CallingConvention.Winapi";
-            string marshalParamsAsParameter = argumentCount == 0 ?
-                "" :
-                $",{Constants.NewLine}            MarshalAsAttribute?[]? marshalParamsAs = null";
+                $",{Constants.NewLineIndent3}CallingConvention callingConvention = CallingConvention.Winapi";
+            string marshalParamsAsParameter = argumentCount != 0 ?
+                $",{Constants.NewLineIndent3}MarshalAsAttribute?[]? marshalParamsAs = null" :
+                string.Empty;
             _ = sb.Append
             (
 $@"    internal interface INative{type}{qualifiedTypeParameters}
@@ -75,7 +71,7 @@ $@"    internal interface INative{type}{qualifiedTypeParameters}
             );
         }
 
-        public static string GetSource()
+        public static string GetSourceText()
         {
             var source = new StringBuilder
             (

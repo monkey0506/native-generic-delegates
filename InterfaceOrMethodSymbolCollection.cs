@@ -6,35 +6,40 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
-namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
+namespace Monkeymoto.NativeGenericDelegates
 {
-    internal readonly struct InterfaceOrMethodSymbolCollection :
+    internal readonly partial struct InterfaceOrMethodSymbolCollection :
         IEquatable<InterfaceOrMethodSymbolCollection>,
         IEnumerable<ISymbol>
     {
         private readonly int hashCode;
         private readonly ImmutableList<ISymbol> symbols;
 
-        public static bool operator ==(InterfaceOrMethodSymbolCollection left, InterfaceOrMethodSymbolCollection right) =>
-            left.Equals(right);
-        public static bool operator !=(InterfaceOrMethodSymbolCollection left, InterfaceOrMethodSymbolCollection right) =>
-            !(left == right);
+        public static bool operator ==
+        (
+            InterfaceOrMethodSymbolCollection left,
+            InterfaceOrMethodSymbolCollection right
+        ) => left.Equals(right);
+
+        public static bool operator !=
+        (
+            InterfaceOrMethodSymbolCollection left,
+            InterfaceOrMethodSymbolCollection right
+        ) => !(left == right);
 
         public static IncrementalValueProvider<InterfaceOrMethodSymbolCollection> GetSymbols
         (
             IncrementalValueProvider<Compilation> compilationProvider
-        )
-        {
-            return compilationProvider.Select
-            (
-                static (compilation, cancellationToken) => new InterfaceOrMethodSymbolCollection(compilation, cancellationToken)
-            );
-        }
+        ) => compilationProvider.Select
+        (
+            static (compilation, cancellationToken) =>
+                new InterfaceOrMethodSymbolCollection(compilation, cancellationToken)
+        );
 
         public InterfaceOrMethodSymbolCollection(Compilation compilation, CancellationToken cancellationToken)
         {
-            var list = new List<ISymbol>(Constants.InterfaceAndGenericMethodSymbolCount);
-            for (int i = 0; i < Constants.InterfaceSymbolCountPerKind; ++i)
+            var builder = ImmutableList.CreateBuilder<ISymbol>();
+            for (int i = 0; i < Constants.InterfaceSymbolCountPerCategory; ++i)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var interfaceSymbol = compilation.GetTypeByMetadataName(Constants.Actions.MetadataNames[i])!;
@@ -43,23 +48,20 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
                 var genericMethods = interfaceSymbol.GetMembers()
                     .Where(x => x is IMethodSymbol methodSymbol && methodSymbol.IsGenericMethod)
                     .OrderBy(x => x.Name);
-                list.Add(interfaceSymbol);
-                list.AddRange(genericMethods);
+                builder.Add(interfaceSymbol);
+                builder.AddRange(genericMethods);
                 interfaceSymbol = compilation.GetTypeByMetadataName(Constants.Funcs.MetadataNames[i])!;
                 genericMethods = interfaceSymbol.GetMembers()
                     .Where(x => x is IMethodSymbol methodSymbol && methodSymbol.IsGenericMethod)
                     .OrderBy(x => x.Name);
-                list.Add(interfaceSymbol);
-                list.AddRange(genericMethods);
+                builder.Add(interfaceSymbol);
+                builder.AddRange(genericMethods);
             }
-            symbols = list.ToImmutableList();
+            symbols = builder.ToImmutable();
             hashCode = Hash.Combine(symbols);
         }
 
-        public override bool Equals(object obj)
-        {
-            return obj is InterfaceOrMethodSymbolCollection other && Equals(other);
-        }
+        public override bool Equals(object? obj) => obj is InterfaceOrMethodSymbolCollection other && Equals(other);
 
         public bool Equals(InterfaceOrMethodSymbolCollection other)
         {
@@ -77,19 +79,8 @@ namespace Monkeymoto.Generators.NativeGenericDelegates.Generator
             return true;
         }
 
-        public IEnumerator<ISymbol> GetEnumerator()
-        {
-            return symbols.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public override int GetHashCode()
-        {
-            return hashCode;
-        }
+        public IEnumerator<ISymbol> GetEnumerator() => symbols.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public override int GetHashCode() => hashCode;
     }
 }
