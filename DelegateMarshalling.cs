@@ -13,9 +13,10 @@ namespace Monkeymoto.NativeGenericDelegates
     {
         private readonly int hashCode;
 
-        public CallingConvention CallingConvention { get; }
         public IReadOnlyList<string?>? MarshalParamsAs { get; }
         public string? MarshalReturnAs { get; }
+        public string? RuntimeCallingConvention { get; }
+        public CallingConvention? StaticCallingConvention { get; }
 
         public static bool operator ==(DelegateMarshalling? left, DelegateMarshalling? right) =>
             left?.Equals(right) ?? right is null;
@@ -51,30 +52,6 @@ namespace Monkeymoto.NativeGenericDelegates
                         break;
                 }
             }
-            CallingConvention callingConvention = CallingConvention.Winapi;
-            if (callingConventionArgument is not null)
-            {
-                bool isValid = false;
-                var field = (callingConventionArgument.Value as IFieldReferenceOperation)?.Field;
-                if (field is not null && SymbolEqualityComparer.Default.Equals(field.ContainingType, field.Type) &&
-                    Enum.TryParse(field?.Name, false, out callingConvention))
-                {
-                    isValid = true;
-                }
-                if (!isValid)
-                {
-                    callingConvention = CallingConvention.Winapi;
-                    diagnostics.Add
-                    (
-                        Diagnostic.Create
-                        (
-                            Diagnostics.NGD1002_InvalidCallingConventionArgument,
-                            callingConventionArgument.Syntax.GetLocation()
-                        )
-                    );
-                }
-            }
-            CallingConvention = callingConvention;
             MarshalParamsAs = Parser.GetMarshalParamsAs
             (
                 marshalParamsAsArgument,
@@ -83,13 +60,37 @@ namespace Monkeymoto.NativeGenericDelegates
                 cancellationToken
             );
             MarshalReturnAs = Parser.GetMarshalReturnAs(marshalReturnAsArgument, diagnostics, cancellationToken);
-            hashCode = Hash.Combine(CallingConvention, MarshalParamsAs, MarshalReturnAs);
+            if (callingConventionArgument is not null)
+            {
+                var value = callingConventionArgument.Value;
+                var field = (value as IFieldReferenceOperation)?.Field;
+                if (field is not null && SymbolEqualityComparer.Default.Equals(field.ContainingType, field.Type) &&
+                    Enum.TryParse(field?.Name, false, out CallingConvention callingConvention))
+                {
+                    RuntimeCallingConvention = null;
+                    StaticCallingConvention = callingConvention;
+                }
+                else
+                {
+                    RuntimeCallingConvention = value.ToString();
+                    StaticCallingConvention = null;
+                }
+            }
+            hashCode = Hash.Combine
+            (
+                MarshalParamsAs,
+                MarshalReturnAs,
+                RuntimeCallingConvention,
+                StaticCallingConvention
+            );
         }
 
         public override bool Equals(object? obj) => obj is DelegateMarshalling other && Equals(other);
         public bool Equals(DelegateMarshalling? other) =>
-            (other is not null) && (CallingConvention == other.CallingConvention) &&
-            MarshalParamsAs.SequenceEqual(other.MarshalParamsAs) && (MarshalReturnAs == other.MarshalReturnAs);
+            (other is not null) && MarshalParamsAs.SequenceEqual(other.MarshalParamsAs) &&
+            (MarshalReturnAs == other.MarshalReturnAs) &&
+            (RuntimeCallingConvention == other.RuntimeCallingConvention) &&
+            (StaticCallingConvention == other.StaticCallingConvention);
         public override int GetHashCode() => hashCode;
     }
 }
