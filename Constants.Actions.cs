@@ -1,4 +1,6 @@
-﻿namespace Monkeymoto.NativeGenericDelegates
+﻿using System.Linq;
+
+namespace Monkeymoto.NativeGenericDelegates
 {
     internal static partial class Constants
     {

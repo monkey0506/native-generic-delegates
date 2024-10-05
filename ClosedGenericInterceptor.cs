@@ -47,7 +47,10 @@ namespace Monkeymoto.NativeGenericDelegates
                 _ = sb.Append(reference.InterceptorAttributeSourceText).Append($"{Constants.NewLineIndent2}");
             }
             var method = InterceptsMethod;
-            var typeParameters = GetTypeParameters(method.ContainingInterface.Arity, method.Arity);
+            var typeParameters = Constants.InterceptorTypeParameters[method.ContainingInterface.Arity];
+            typeParameters = typeParameters.Length != 0 ?
+                $"<{typeParameters}>" :
+                typeParameters;
             _ = sb.Append
             (
      $@"[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -83,17 +86,6 @@ namespace Monkeymoto.NativeGenericDelegates
                 );
             }
             return sb.ToString();
-        }
-        internal static string GetTypeParameters(int interfaceArity, int methodArity)
-        {
-            if (interfaceArity == 0)
-            {
-                return string.Empty;
-            }
-            int arity = interfaceArity + methodArity;
-            return arity == 1 ?
-                "<X>" :
-                $"<{string.Join(", ", Enumerable.Range(1, arity).Select(x => $"X{x}"))}>";
         }
     }
 }

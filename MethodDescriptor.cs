@@ -13,6 +13,7 @@ namespace Monkeymoto.NativeGenericDelegates
         public string FirstParameterName { get; }
         public string FirstParameterType { get; }
         public string FullName { get; }
+        public string InterceptorParameters { get; }
         public bool IsFromFunctionPointer { get; }
         public string Name { get; }
         public string Parameters { get; }
@@ -54,8 +55,9 @@ namespace Monkeymoto.NativeGenericDelegates
             Arity = methodSymbol.Arity;
             ContainingInterface = containingInterface;
             FullName = GetFullName(methodSymbol);
+            InterceptorParameters = GetParameters(getInterceptorParameters: true);
             Name = methodSymbol.Name;
-            Parameters = GetParameters();
+            Parameters = GetParameters(getInterceptorParameters: false);
             hashCode = Hash.Combine(Arity, ContainingInterface, Name);
         }
 
@@ -65,7 +67,7 @@ namespace Monkeymoto.NativeGenericDelegates
             (Name == other.Name);
         public override int GetHashCode() => hashCode;
 
-        private string GetParameters()
+        private string GetParameters(bool getInterceptorParameters)
         {
             var marshalReturnAsParam = !ContainingInterface.IsAction ?
                 $"MarshalAsAttribute marshalReturnAs,{Constants.NewLineIndent3}" :
@@ -73,8 +75,14 @@ namespace Monkeymoto.NativeGenericDelegates
             var marshalParamsAsParam = ContainingInterface.InvokeParameterCount != 0 ?
                 $"MarshalAsAttribute[] marshalParamsAs,{Constants.NewLineIndent3}" :
                 string.Empty;
+            var firstParameterType = FirstParameterType;
+            if (getInterceptorParameters && !IsFromFunctionPointer && (ContainingInterface.Arity > 0))
+            {
+                var typeParameters = Constants.InterceptorTypeParameters[ContainingInterface.Arity];
+                firstParameterType = $"{ContainingInterface.Category}<{typeParameters}>";
+            }
             return
-                $"{FirstParameterType} {FirstParameterName},{Constants.NewLineIndent3}{marshalReturnAsParam}" +
+                $"{firstParameterType} {FirstParameterName},{Constants.NewLineIndent3}{marshalReturnAsParam}" +
                 $"{marshalParamsAsParam}CallingConvention callingConvention";
         }
     }

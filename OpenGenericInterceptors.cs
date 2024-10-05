@@ -44,17 +44,14 @@ namespace Monkeymoto.NativeGenericDelegates
             {
                 Debug.Assert(attributes.ContainsKey(kv.Key));
                 var first = kv.Value.First();
-                var interfaceTypeParameters =
-                    ClosedGenericInterceptor.GetTypeParameters(first.Method.ContainingInterface.Arity, 0);
-                var interfaceName = $"{first.Method.ContainingInterface.Name}{interfaceTypeParameters}";
+                var typeParameters = Constants.InterceptorTypeParameters[first.Method.ContainingInterface.Arity];
+                typeParameters = typeParameters.Length != 0 ?
+                    $"<{typeParameters}>" :
+                    typeParameters;
+                var interfaceName = $"{first.Method.ContainingInterface.Name}{typeParameters}";
                 var methodHash = kv.Key.GetHashCode();
                 var methodName = first.Method.Name;
-                var parameters = first.Method.Parameters;
-                var typeParameters = ClosedGenericInterceptor.GetTypeParameters
-                (
-                    first.Method.ContainingInterface.Arity,
-                    first.Method.Arity
-                );
+                var parameters = first.Method.InterceptorParameters;
                 _ = sb.AppendLine().Append("    ").AppendLine
                 (
  $@"file static class NativeGenericDelegates_{(methodHash < 0 ? $"S{-methodHash}" : $"U{methodHash}")}
@@ -75,7 +72,8 @@ namespace Monkeymoto.NativeGenericDelegates
                 );
                 for (int i = 0; i < kv.Value.Count; ++i)
                 {
-                    var typeArguments = kv.Value[i].Method.ContainingInterface.TypeArguments;
+                    var method = kv.Value[i].Method;
+                    var typeArguments = method.ContainingInterface.TypeArguments;
                     if (typeArguments.Count == 1)
                     {
                         _ = sb.Append($"            if (typeof(X) == typeof({typeArguments[0]}))");
@@ -94,19 +92,23 @@ namespace Monkeymoto.NativeGenericDelegates
                         _ = sb.Append("            )");
                     }
                     _ = sb.Append(Constants.NewLineIndent3);
+                    var firstParam = method.FirstParameterName;
+                    if (!method.IsFromFunctionPointer)
+                    {
+                        firstParam = $"({method.ContainingInterface.Category}{method.ContainingInterface.TypeArgumentList})(object){firstParam}";
+                    }
                     if (kv.Value[i].Marshalling.StaticCallingConvention is not null)
                     {
                         _ = sb.AppendLine
                         (
          $@"{{
-                return ({interfaceName})(object)(new {kv.Value[i].ClassName}({kv.Value[i].Method.FirstParameterName}));
+                return ({interfaceName})(object)(new {kv.Value[i].ClassName}({firstParam}));
             }}"
                         );
                     }
                     else
                     {
                         var className = kv.Value[i].ClassName;
-                        var firstParam = kv.Value[i].Method.FirstParameterName;
                         _ = sb.AppendLine
                         (
          $@"{{

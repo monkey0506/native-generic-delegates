@@ -153,6 +153,12 @@ namespace Monkeymoto.NativeGenericDelegates
         private const string TypeParameters_T1_T15 = $"{TypeParameters_T1_T14}, T15";
         private const string TypeParameters_T1_T16 = $"{TypeParameters_T1_T15}, T16";
 
+        public static readonly string[] InterceptorTypeParameters =
+        [
+            .. TypeParameters.Select(static x => x.Replace('T', 'X')),
+            $"{TypeParameters_T1_T16.Replace('T', 'X')}, X17"
+        ];
+
         private static readonly string[] QualifiedTypeParameters =
             [.. TypeParameters.Select(x => x.Replace("T", "in T"))];
     }
