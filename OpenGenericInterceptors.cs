@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Monkeymoto.NativeGenericDelegates
@@ -92,12 +93,38 @@ namespace Monkeymoto.NativeGenericDelegates
                         }
                         _ = sb.Append("            )");
                     }
-                    _ = sb.AppendLine().Append("            ").AppendLine
-                    (
+                    _ = sb.Append(Constants.NewLineIndent3);
+                    if (kv.Value[i].Marshalling.StaticCallingConvention is not null)
+                    {
+                        _ = sb.AppendLine
+                        (
          $@"{{
                 return ({interfaceName})(object)(new {kv.Value[i].ClassName}({kv.Value[i].Method.FirstParameterName}));
             }}"
-                    );
+                        );
+                    }
+                    else
+                    {
+                        var className = kv.Value[i].ClassName;
+                        var firstParam = kv.Value[i].Method.FirstParameterName;
+                        _ = sb.AppendLine
+                        (
+         $@"{{
+                return callingConvention switch
+                {{
+                    CallingConvention.Cdecl =>
+                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.Cdecl)}({firstParam})),
+                    CallingConvention.StdCall =>
+                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.StdCall)}({firstParam})),
+                    CallingConvention.ThisCall =>
+                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.ThisCall)}({firstParam})),
+                    CallingConvention.Winapi =>
+                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.Winapi)}({firstParam})),
+                    _ => throw new NotImplementedException()
+                }};
+            }}"
+                        );
+                    }
                 }
                 _ = sb.Append
                 (
