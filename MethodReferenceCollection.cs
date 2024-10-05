@@ -20,9 +20,9 @@ namespace Monkeymoto.NativeGenericDelegates
         public static bool operator !=(MethodReferenceCollection left, MethodReferenceCollection right) =>
             !(left == right);
 
-        public static IncrementalValueProvider<MethodReferenceCollection> GetMethodReferences
+        public static IncrementalValueProvider<MethodReferenceCollection> GetReferences
         (
-            IncrementalValueProvider<InterfaceOrMethodReferenceCollection> interfaceOrMethodReferencesProvider
+            IncrementalValueProvider<InterfaceReferenceCollection> interfaceOrMethodReferencesProvider
         ) => interfaceOrMethodReferencesProvider.Select(static (interfaceOrMethodReferences, cancellationToken) =>
         {
             var builder = ImmutableHashSet.CreateBuilder<MethodReference>();

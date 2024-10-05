@@ -36,14 +36,7 @@ namespace Monkeymoto.NativeGenericDelegates
             IMethodSymbol? methodSymbol;
             InvocationExpressionSyntax? invocationExpression;
             var node = interfaceOrMethodReference.Node;
-            if (node is InvocationExpressionSyntax genericMethodInvocationExpression)
-            {
-                // generic methods (currently none)
-                methodSymbol = (IMethodSymbol)interfaceOrMethodReference.Symbol;
-                interfaceSymbol = methodSymbol.ContainingType;
-                invocationExpression = genericMethodInvocationExpression;
-            }
-            else if (node.Parent?.Parent is InvocationExpressionSyntax methodInvocationExpression)
+            if (node.Parent?.Parent is InvocationExpressionSyntax methodInvocationExpression)
             {
                 // non-generic methods (FromAction, FromFunc, FromFunctionPointer)
                 var methodNameSyntax = ((MemberAccessExpressionSyntax)node.Parent).Name;

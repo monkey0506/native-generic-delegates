@@ -33,10 +33,9 @@ namespace Monkeymoto.NativeGenericDelegates
         {
             context.RegisterPostInitializationOutput(static context =>
                 context.AddSource(Constants.DeclarationsSourceFileName, PostInitialization.GetSourceText()));
-            var interfaceOrMethodSymbols = InterfaceOrMethodSymbolCollection.GetSymbols(context.CompilationProvider);
-            var interfaceOrMethodReferences =
-                InterfaceOrMethodReferenceCollection.GetInterfaceOrMethodReferences(context, interfaceOrMethodSymbols);
-            var methodReferences = MethodReferenceCollection.GetMethodReferences(interfaceOrMethodReferences);
+            var interfaceSymbols = InterfaceSymbolCollection.GetSymbols(context.CompilationProvider);
+            var interfaceReferences = InterfaceReferenceCollection.GetReferences(context, interfaceSymbols);
+            var methodReferences = MethodReferenceCollection.GetReferences(interfaceReferences);
             context.RegisterSourceOutput(methodReferences, static (context, methodReferences) =>
             {
                 foreach (var diagnostic in methodReferences.Diagnostics)
