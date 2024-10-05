@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Monkeymoto.NativeGenericDelegates
@@ -43,22 +44,44 @@ namespace Monkeymoto.NativeGenericDelegates
             var sb = new StringBuilder($"{Constants.NewLineIndent2}");
             foreach (var reference in InterceptedMethodReferences.Select(x => x.MethodReference))
             {
-                _ = sb.Append($"{Constants.NewLineIndent2}").Append(reference.InterceptorAttributeSourceText);
+                _ = sb.Append(reference.InterceptorAttributeSourceText).Append($"{Constants.NewLineIndent2}");
             }
             var method = InterceptsMethod;
             var typeParameters = GetTypeParameters(method.ContainingInterface.Arity, method.Arity);
             _ = sb.Append
             (
-     $@"
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+     $@"[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static {method.ContainingInterface.FullName} {method.Name}{typeParameters}
         (
             {method.Parameters}
         )
-        {{
+        {{"
+            );
+            if (ImplementationClass.Marshalling.StaticCallingConvention is not null)
+            {
+                _ = sb.Append
+                (
+     $@"
             return new {ImplementationClass.ClassName}({method.FirstParameterName});
         }}"
-            );
+                );
+            }
+            else
+            {
+                _ = sb.Append
+                (
+     $@"
+            return callingConvention switch
+            {{
+                CallingConvention.Cdecl => ({method.ContainingInterface.FullName})new {ImplementationClass.ClassName}_{nameof(CallingConvention.Cdecl)}({method.FirstParameterName}),
+                CallingConvention.StdCall => new {ImplementationClass.ClassName}_{nameof(CallingConvention.StdCall)}({method.FirstParameterName}),
+                CallingConvention.ThisCall => new {ImplementationClass.ClassName}_{nameof(CallingConvention.ThisCall)}({method.FirstParameterName}),
+                CallingConvention.Winapi => new {ImplementationClass.ClassName}_{nameof(CallingConvention.Winapi)}({method.FirstParameterName}),
+                _ => throw new NotImplementedException()
+            }};
+        }}"
+                );
+            }
             return sb.ToString();
         }
         internal static string GetTypeParameters(int interfaceArity, int methodArity)

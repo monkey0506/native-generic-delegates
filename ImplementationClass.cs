@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Monkeymoto.NativeGenericDelegates
@@ -46,11 +47,11 @@ namespace Monkeymoto.NativeGenericDelegates
         public bool Equals(ImplementationClass? other) => (other is not null) && (SourceText == other.SourceText);
         public override int GetHashCode() => hashCode;
 
-        private string GetFromDelegateConstructor()
+        private string GetFromDelegateConstructor(string classSuffix)
         {
             var firstParam = Method.FirstParameterName;
             return
-     $@"internal {ClassName}({Method.FirstParameterType} {firstParam})
+     $@"internal {ClassName}{classSuffix}({Method.FirstParameterType} {firstParam})
         {{
             ArgumentNullException.ThrowIfNull({firstParam});
             handler = (Handler)Delegate.CreateDelegate(typeof(Handler), {firstParam}.Target, {firstParam}.Method);
@@ -58,10 +59,10 @@ namespace Monkeymoto.NativeGenericDelegates
         }}";
         }
 
-        private string GetFromFunctionPointerConstructor()
+        private string GetFromFunctionPointerConstructor(string classSuffix)
         {
             return
-     $@"internal {ClassName}(nint functionPtr)
+     $@"internal {ClassName}{classSuffix}(nint functionPtr)
         {{
             if (functionPtr == nint.Zero)
             {{
@@ -104,10 +105,33 @@ namespace Monkeymoto.NativeGenericDelegates
 
         private string GetSourceText()
         {
-            var callingConvention = Marshalling.CallingConvention;
+            if (Marshalling.StaticCallingConvention is not null)
+            {
+                return
+                    GetSourceText(Marshalling.StaticCallingConvention.Value);
+            }
+            var interceptor = Interceptor?.SourceText;
+            if (interceptor is not null)
+            {
+                interceptor =
+ $@"
+    file static class {ClassName}
+    {{{interceptor}
+    }}";
+            }
+            return
+ $@"{GetSourceText(CallingConvention.Cdecl, $"_{nameof(CallingConvention.Cdecl)}")}
+    {GetSourceText(CallingConvention.StdCall, $"_{nameof(CallingConvention.StdCall)}")}
+    {GetSourceText(CallingConvention.ThisCall, $"_{nameof(CallingConvention.ThisCall)}")}
+    {GetSourceText(CallingConvention.Winapi, $"_{nameof(CallingConvention.Winapi)}")}{interceptor ?? string.Empty}";
+        }
+
+        private string GetSourceText(CallingConvention callingConvention, string? classSuffix = null)
+        {
+            classSuffix ??= string.Empty;
             var constructor = Method.IsFromFunctionPointer ?
-                GetFromFunctionPointerConstructor() :
-                GetFromDelegateConstructor();
+                GetFromFunctionPointerConstructor(classSuffix) :
+                GetFromDelegateConstructor(classSuffix);
             var interfaceFullName = Method.ContainingInterface.FullName;
             var invokeParameterCount = Method.ContainingInterface.InvokeParameterCount;
             var invokeParameters = GetInvokeParameters();
@@ -127,8 +151,15 @@ namespace Monkeymoto.NativeGenericDelegates
                     returnType = Method.ContainingInterface.TypeArguments.Last();
                     break;
             }
+            var interceptor = Marshalling.StaticCallingConvention is not null ?
+                Interceptor?.SourceText ?? string.Empty :
+                string.Empty;
+            if (interceptor != string.Empty)
+            {
+                interceptor = $"{Constants.NewLineIndent2}{interceptor}";
+            }
             return
- $@"file sealed class {ClassName} : {interfaceFullName}
+ $@"file sealed class {ClassName}{classSuffix} : {interfaceFullName}
     {{
         private readonly Handler handler;
         private readonly nint functionPtr;
@@ -145,7 +176,7 @@ namespace Monkeymoto.NativeGenericDelegates
         {returnMarshalAsAttribute}public {returnType} Invoke{invokeParameters}
         {{
             {returnKeyword}handler({Constants.Arguments[invokeParameterCount]});
-        }}{Interceptor?.SourceText ?? string.Empty}
+        }}{interceptor}
     }}
     ";
         }

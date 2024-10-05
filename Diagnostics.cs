@@ -15,16 +15,6 @@ namespace Monkeymoto.NativeGenericDelegates
                 true
             );
 
-        public static readonly DiagnosticDescriptor NGD1002_InvalidCallingConventionArgument = new
-        (
-            "NGD1002",
-            "NGD1002: Invalid CallingConvention argument",
-            "CallingConvention argument must be literal or static readonly field",
-            "Usage",
-            DiagnosticSeverity.Error,
-            true
-        );
-
         public static readonly DiagnosticDescriptor NGD1003_MarshalAsArgumentSpreadElementNotSupported = new
         (
             "NGD1003",
