@@ -60,6 +60,12 @@ namespace Monkeymoto.NativeGenericDelegates
         private const string AntiConstraint_T1_T16 =
             $"{AntiConstraint_T1_T15}{NewLineIndent2}where T16 : allows ref struct";
 
+        public static readonly string[] InterceptorAntiConstraints =
+        [
+            .. AntiConstraints.Select(static x => x.Replace('T', 'X')),
+            $"{AntiConstraint_T1_T16.Replace('T', 'X')}{NewLineIndent2}where X17 : allows ref struct"
+        ];
+
         public static readonly string[] Arguments =
         [
             Arguments_T0,

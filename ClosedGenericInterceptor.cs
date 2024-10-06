@@ -57,7 +57,7 @@ namespace Monkeymoto.NativeGenericDelegates
         public static {method.ContainingInterface.FullName} {method.Name}{typeParameters}
         (
             {method.Parameters}
-        )
+        ){Constants.InterceptorAntiConstraints[method.ContainingInterface.Arity]}
         {{"
             );
             if (ImplementationClass.Marshalling.StaticCallingConvention is not null)

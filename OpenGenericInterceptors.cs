@@ -67,7 +67,7 @@ namespace Monkeymoto.NativeGenericDelegates
         public static {interfaceName} {methodName}{typeParameters}
         (
             {parameters}
-        )
+        ){Constants.InterceptorAntiConstraints[first.Method.ContainingInterface.Arity]}
         {{"
                 );
                 for (int i = 0; i < kv.Value.Count; ++i)
