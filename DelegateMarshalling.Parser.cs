@@ -255,8 +255,10 @@ namespace Monkeymoto.NativeGenericDelegates
                 var fieldDeclaration = fieldReference.Field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
                 var equalsValueClause = fieldDeclaration.ChildNodes().OfType<EqualsValueClauseSyntax>()
                     .FirstOrDefault();
-                if (equalsValueClause is null ||
-                    fieldReference.SemanticModel!.GetOperation(equalsValueClause, cancellationToken) is not
+                SemanticModel? semanticModel = equalsValueClause is not null ?
+                    fieldReference.SemanticModel!.Compilation.GetSemanticModel(equalsValueClause.SyntaxTree) :
+                    null;
+                if (semanticModel?.GetOperation(equalsValueClause!, cancellationToken) is not
                     IFieldInitializerOperation fieldInitializer)
                 {
                     return null;
