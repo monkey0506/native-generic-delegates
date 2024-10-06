@@ -176,7 +176,10 @@ namespace Monkeymoto.NativeGenericDelegates
         {returnMarshalAsAttribute}public {returnType} Invoke{invokeParameters}
         {{
             {returnKeyword}handler({Constants.Arguments[invokeParameterCount]});
-        }}{interceptor}
+        }}
+        
+        object {interfaceFullName}.Target => handler.Target;
+        MethodInfo {interfaceFullName}.Method => handler.Method;{interceptor}
     }}
     ";
         }
