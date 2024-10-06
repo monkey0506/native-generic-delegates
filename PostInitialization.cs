@@ -74,7 +74,13 @@ $@"    internal interface INative{type}{qualifiedTypeParameters}{antiConstraints
 
         public nint GetFunctionPointer();
         public {returnType} Invoke({parameters});
-        public {genericType} To{type}() => ({genericType})Delegate.CreateDelegate(typeof({genericType}), Target, Method);
+        public {genericType} To{type}() =>
+            ({genericType})Delegate.CreateDelegate
+            (
+                typeof({genericType}),
+                Target,
+                Method
+            );
     }}
 "
             );
