@@ -55,7 +55,7 @@ $@"    internal interface INative{type}{qualifiedTypeParameters}
 
         public static INative{genericType} From{type}
         (
-            {genericType} {typeAsArgument}{marshalMap}{marshalReturnAsParameter}{marshalParamsAsParameter}{callingConvention}
+            {genericType} {typeAsArgument}{callingConvention}{marshalMap}{marshalReturnAsParameter}{marshalParamsAsParameter}
         )
         {{
             throw new NotImplementedException();
@@ -63,7 +63,7 @@ $@"    internal interface INative{type}{qualifiedTypeParameters}
 
         public static INative{genericType} FromFunctionPointer
         (
-            nint functionPtr{marshalMap}{marshalReturnAsParameter}{marshalParamsAsParameter}{callingConvention}
+            nint functionPtr{callingConvention}{marshalMap}{marshalReturnAsParameter}{marshalParamsAsParameter}
         )
         {{
             throw new NotImplementedException();
