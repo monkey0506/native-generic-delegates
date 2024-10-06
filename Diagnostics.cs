@@ -24,5 +24,15 @@ namespace Monkeymoto.NativeGenericDelegates
             DiagnosticSeverity.Error,
             true
         );
+
+        public static readonly DiagnosticDescriptor NGD1004_InvalidMarshalMapArgument = new
+        (
+            "NGD1004",
+            "NGD1004: Invalid MarshalMap argument",
+            "MarshalMap argument {0} must be null or use collection initializer syntax",
+            "Usage",
+            DiagnosticSeverity.Error,
+            true
+        );
     }
 }

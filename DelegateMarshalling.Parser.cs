@@ -10,7 +10,7 @@ namespace Monkeymoto.NativeGenericDelegates
 {
     internal sealed partial class DelegateMarshalling
     {
-        private static class Parser
+        internal static class Parser
         {
             private static IReadOnlyList<string?> GetMarshalAsCollectionFromArrayInitializer
             (
@@ -185,7 +185,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 return null;
             }
 
-            private static string? GetMarshalAsFromOperation
+            public static string? GetMarshalAsFromOperation
             (
                 IOperation value,
                 string parameterName,
