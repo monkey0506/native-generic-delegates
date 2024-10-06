@@ -11,11 +11,13 @@ namespace Monkeymoto.NativeGenericDelegates
             string? returnType;
             string? type;
             string? typeParameters;
+            string? antiConstraints;
             if (isAction)
             {
                 marshalReturnAsParameter = string.Empty;
                 returnType = "void";
                 type = Constants.CategoryAction;
+                antiConstraints = Constants.Actions.AntiConstraints[argumentCount];
                 if (argumentCount != 0)
                 {
                     qualifiedTypeParameters = $"<{Constants.Actions.QualifiedTypeParameters[argumentCount]}>";
@@ -34,6 +36,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 returnType = "TResult";
                 type = Constants.CategoryFunc;
                 typeParameters = $"<{Constants.Funcs.TypeParameters[argumentCount]}>";
+                antiConstraints = Constants.Funcs.AntiConstraints[argumentCount];
             }
             string genericType = $"{type}{typeParameters}";
             string parameters = Constants.Parameters[argumentCount];
@@ -48,7 +51,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 string.Empty;
             _ = sb.Append
             (
-$@"    internal interface INative{type}{qualifiedTypeParameters}
+$@"    internal interface INative{type}{qualifiedTypeParameters}{antiConstraints}
     {{
         protected object? Target {{ get; }}
         protected MethodInfo Method {{ get; }}

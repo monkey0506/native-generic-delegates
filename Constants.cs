@@ -6,6 +6,60 @@ namespace Monkeymoto.NativeGenericDelegates
 {
     internal static partial class Constants
     {
+        private static readonly string[] AntiConstraints =
+        [
+            AntiConstraint_T0,
+            AntiConstraint_T1,
+            AntiConstraint_T1_T2,
+            AntiConstraint_T1_T3,
+            AntiConstraint_T1_T4,
+            AntiConstraint_T1_T5,
+            AntiConstraint_T1_T6,
+            AntiConstraint_T1_T7,
+            AntiConstraint_T1_T8,
+            AntiConstraint_T1_T9,
+            AntiConstraint_T1_T10,
+            AntiConstraint_T1_T11,
+            AntiConstraint_T1_T12,
+            AntiConstraint_T1_T13,
+            AntiConstraint_T1_T14,
+            AntiConstraint_T1_T15,
+            AntiConstraint_T1_T16
+        ];
+
+        private const string AntiConstraint_T0 = "";
+        private const string AntiConstraint_T1 = $"{NewLineIndent2}where T : allows ref struct";
+        private const string AntiConstraint_T1_T2 =
+            $"{NewLineIndent2}where T1 : allows ref struct{NewLineIndent2}where T2 : allows ref struct";
+        private const string AntiConstraint_T1_T3 =
+            $"{AntiConstraint_T1_T2}{NewLineIndent2}where T3 : allows ref struct";
+        private const string AntiConstraint_T1_T4 =
+            $"{AntiConstraint_T1_T3}{NewLineIndent2}where T4 : allows ref struct";
+        private const string AntiConstraint_T1_T5 =
+            $"{AntiConstraint_T1_T4}{NewLineIndent2}where T5 : allows ref struct";
+        private const string AntiConstraint_T1_T6 =
+            $"{AntiConstraint_T1_T5}{NewLineIndent2}where T6 : allows ref struct";
+        private const string AntiConstraint_T1_T7 =
+            $"{AntiConstraint_T1_T6}{NewLineIndent2}where T7 : allows ref struct";
+        private const string AntiConstraint_T1_T8 =
+            $"{AntiConstraint_T1_T7}{NewLineIndent2}where T8 : allows ref struct";
+        private const string AntiConstraint_T1_T9 =
+            $"{AntiConstraint_T1_T8}{NewLineIndent2}where T9 : allows ref struct";
+        private const string AntiConstraint_T1_T10 =
+            $"{AntiConstraint_T1_T9}{NewLineIndent2}where T10 : allows ref struct";
+        private const string AntiConstraint_T1_T11 =
+            $"{AntiConstraint_T1_T10}{NewLineIndent2}where T11 : allows ref struct";
+        private const string AntiConstraint_T1_T12 =
+            $"{AntiConstraint_T1_T11}{NewLineIndent2}where T12 : allows ref struct";
+        private const string AntiConstraint_T1_T13 =
+            $"{AntiConstraint_T1_T12}{NewLineIndent2}where T13 : allows ref struct";
+        private const string AntiConstraint_T1_T14 =
+            $"{AntiConstraint_T1_T13}{NewLineIndent2}where T14 : allows ref struct";
+        private const string AntiConstraint_T1_T15 =
+            $"{AntiConstraint_T1_T14}{NewLineIndent2}where T15 : allows ref struct";
+        private const string AntiConstraint_T1_T16 =
+            $"{AntiConstraint_T1_T15}{NewLineIndent2}where T16 : allows ref struct";
+
         public static readonly string[] Arguments =
         [
             Arguments_T0,

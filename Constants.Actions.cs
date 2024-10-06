@@ -1,11 +1,11 @@
-﻿using System.Linq;
-
-namespace Monkeymoto.NativeGenericDelegates
+﻿namespace Monkeymoto.NativeGenericDelegates
 {
     internal static partial class Constants
     {
         internal static class Actions
         {
+            public static readonly string[] AntiConstraints = Constants.AntiConstraints;
+
             public static readonly string[] MetadataNames =
             [
                 $"{RootNamespace}.INativeAction",

@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace Monkeymoto.NativeGenericDelegates
 {
@@ -7,10 +6,12 @@ namespace Monkeymoto.NativeGenericDelegates
     {
         internal static class Funcs
         {
-            static Funcs()
-            {
-                RuntimeHelpers.RunClassConstructor(typeof(Constants).TypeHandle);
-            }
+            public static readonly string[] AntiConstraints =
+            [
+                $"{NewLineIndent2}where TResult : allows ref struct",
+                .. Constants.AntiConstraints.Skip(1)
+                    .Select(static x => $"{x}{NewLineIndent2}where TResult : allows ref struct")
+            ];
 
             public static readonly string[] MetadataNames =
             [
