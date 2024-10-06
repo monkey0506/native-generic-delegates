@@ -7,3 +7,4 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 NGD1001 | Usage | Error | Diagnostics
 NGD1003 | Usage | Error | Diagnostics
+NGD1004 | Usage | Error | Diagnostics

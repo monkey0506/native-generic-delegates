@@ -32,6 +32,7 @@ namespace Monkeymoto.NativeGenericDelegates
         )
         {
             IArgumentOperation? callingConventionArgument = null;
+            IArgumentOperation? marshalMapArgument = null;
             IArgumentOperation? marshalReturnAsArgument = null;
             IArgumentOperation? marshalParamsAsArgument = null;
             foreach (var argumentNode in invocationExpression.ArgumentList.Arguments)
@@ -41,6 +42,16 @@ namespace Monkeymoto.NativeGenericDelegates
                 {
                     case "callingConvention":
                         callingConventionArgument = argumentOp;
+                        break;
+                    case "marshalMap":
+                        IConversionOperation? conversion = argumentOp.Value as IConversionOperation;
+                        ILiteralOperation? literal = conversion?.Operand as ILiteralOperation;
+                        if (!argumentOp.ConstantValue.HasValue &&
+                            !(conversion?.ConstantValue.HasValue ?? false) &&
+                            !(literal?.ConstantValue.HasValue ?? false))
+                        {
+                            marshalMapArgument = argumentOp;
+                        }
                         break;
                     case "marshalReturnAs":
                         marshalReturnAsArgument = argumentOp;
@@ -60,6 +71,38 @@ namespace Monkeymoto.NativeGenericDelegates
                 cancellationToken
             );
             MarshalReturnAs = Parser.GetMarshalReturnAs(marshalReturnAsArgument, diagnostics, cancellationToken);
+            var marshalMap = MarshalMap.Parse(marshalMapArgument, diagnostics, cancellationToken);
+            if (marshalMap is not null)
+            {
+                var marshalParamsList = new List<string?>(interfaceDescriptor.InvokeParameterCount);
+                if (MarshalParamsAs is not null)
+                {
+                    marshalParamsList.AddRange(MarshalParamsAs);
+                }
+                while (marshalParamsList.Count < interfaceDescriptor.InvokeParameterCount)
+                {
+                    marshalParamsList.Add(null);
+                }
+                bool dirty = false;
+                for (int i = 0; i < interfaceDescriptor.InvokeParameterCount; ++i)
+                {
+                    if ((marshalParamsList[i] is null) &&
+                        marshalMap.TryGetValue(interfaceDescriptor.TypeArguments[i], out var marshalParamAs))
+                    {
+                        marshalParamsList[i] = marshalParamAs;
+                        dirty = true;
+                    }
+                }
+                if (dirty)
+                {
+                    MarshalParamsAs = marshalParamsList.AsReadOnly();
+                }
+                if ((MarshalReturnAs is null) && !interfaceDescriptor.IsAction &&
+                    marshalMap.TryGetValue(interfaceDescriptor.TypeArguments.Last(), out var marshalReturnAs))
+                {
+                    MarshalReturnAs = marshalReturnAs;
+                }
+            }
             if (callingConventionArgument is not null)
             {
                 var value = callingConventionArgument.Value;

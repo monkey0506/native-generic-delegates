@@ -69,6 +69,7 @@ namespace Monkeymoto.NativeGenericDelegates
 
         private string GetParameters(bool getInterceptorParameters)
         {
+            var marshalMap = $"MarshalMap marshalMap,{Constants.NewLineIndent3}";
             var marshalReturnAsParam = !ContainingInterface.IsAction ?
                 $"MarshalAsAttribute marshalReturnAs,{Constants.NewLineIndent3}" :
                 string.Empty;
@@ -82,8 +83,8 @@ namespace Monkeymoto.NativeGenericDelegates
                 firstParameterType = $"{ContainingInterface.Category}<{typeParameters}>";
             }
             return
-                $"{firstParameterType} {FirstParameterName},{Constants.NewLineIndent3}{marshalReturnAsParam}" +
-                $"{marshalParamsAsParam}CallingConvention callingConvention";
+                $"{firstParameterType} {FirstParameterName},{Constants.NewLineIndent3}{marshalMap}" +
+                $"{marshalReturnAsParam}{marshalParamsAsParam}CallingConvention callingConvention";
         }
     }
 }
