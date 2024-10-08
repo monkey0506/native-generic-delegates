@@ -45,9 +45,13 @@ namespace Monkeymoto.NativeGenericDelegates
             else if (node.Parent?.Parent is InvocationExpressionSyntax methodInvocationExpression)
             {
                 var methodNameSyntax = ((MemberAccessExpressionSyntax)node.Parent).Name;
+                if (methodNameSyntax.Arity != 0)
+                {
+                    return null;
+                }
                 interfaceSymbol = (INamedTypeSymbol)interfaceOrMethodReference.Symbol;
                 methodSymbol = interfaceSymbol.GetMembers(methodNameSyntax.Identifier.ToString()).Cast<IMethodSymbol>()
-                    .First(x => x.Arity == methodNameSyntax.Arity);
+                    .First(x => !x.IsGenericMethod);
                 invocationExpression = methodInvocationExpression;
             }
             else
