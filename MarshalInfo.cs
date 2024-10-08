@@ -172,6 +172,12 @@ namespace Monkeymoto.NativeGenericDelegates
             var operation =
                 GetCallingConventionOperation(invocationExpression, semanticModel, cancellationToken);
             StaticCallingConvention = GetStaticCallingConvention(operation);
+            hashCode = Hash.Combine
+            (
+                MarshalParamsAs,
+                MarshalReturnAs,
+                StaticCallingConvention
+            );
         }
 
         private MarshalInfo

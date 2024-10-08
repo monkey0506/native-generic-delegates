@@ -19,7 +19,12 @@ namespace Monkeymoto.NativeGenericDelegates
             public Key(MethodReference methodReference)
             {
                 MethodReference = methodReference;
-                hashCode = Hash.Combine(MethodReference.Method, MethodReference.MarshalInfo);
+                hashCode = Hash.Combine
+                (
+                    MethodReference.Method,
+                    MethodReference.InvocationArgumentCount,
+                    MethodReference.MarshalInfo
+                );
             }
 
             public override bool Equals(object? obj) => obj is Key other && Equals(other);
