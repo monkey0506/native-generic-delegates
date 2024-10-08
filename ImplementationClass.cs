@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -13,7 +12,7 @@ namespace Monkeymoto.NativeGenericDelegates
         public ClassID ID { get; }
         public string ClassName { get; }
         public ClosedGenericInterceptor? Interceptor { get; }
-        public DelegateMarshalling Marshalling { get; }
+        public MarshalInfo MarshalInfo { get; }
         public MethodDescriptor Method { get; }
         public string SourceText { get; }
 
@@ -22,14 +21,15 @@ namespace Monkeymoto.NativeGenericDelegates
             OpenGenericInterceptors.Builder openGenericInterceptorsBuilder,
             MethodDescriptor method,
             bool isInterfaceOrMethodOpenGeneric,
-            DelegateMarshalling marshalling,
+            MarshalInfo marshalInfo,
+            int invocationArgumentCount,
             IReadOnlyList<MethodReference> methodReferences
         )
         {
             var category = method.ContainingInterface.Category;
-            ID = new(method, marshalling);
+            ID = new(method, invocationArgumentCount, marshalInfo);
             ClassName = $"Native{category}_{ID}";
-            Marshalling = marshalling;
+            MarshalInfo = marshalInfo;
             Method = method;
             if (!isInterfaceOrMethodOpenGeneric)
             {
@@ -80,7 +80,7 @@ namespace Monkeymoto.NativeGenericDelegates
             {
                 return "()";
             }
-            var marshalParamsAs = Marshalling.MarshalParamsAs ?? [];
+            var marshalParamsAs = MarshalInfo.MarshalParamsAs ?? [];
             var typeArguments = Method.ContainingInterface.TypeArguments;
             var sb = new StringBuilder($"{Constants.NewLineIndent2}({Constants.NewLineIndent3}");
             for (int i = 0, j = 1; i < invokeParameterCount; ++i, ++j)
@@ -105,10 +105,9 @@ namespace Monkeymoto.NativeGenericDelegates
 
         private string GetSourceText()
         {
-            if (Marshalling.StaticCallingConvention is not null)
+            if (MarshalInfo.StaticCallingConvention is not null)
             {
-                return
-                    GetSourceText(Marshalling.StaticCallingConvention.Value);
+                return GetSourceText(MarshalInfo.StaticCallingConvention.Value);
             }
             var interceptor = Interceptor?.SourceText;
             if (interceptor is not null)
@@ -135,23 +134,12 @@ namespace Monkeymoto.NativeGenericDelegates
             var interfaceFullName = Method.ContainingInterface.FullName;
             var invokeParameterCount = Method.ContainingInterface.InvokeParameterCount;
             var invokeParameters = GetInvokeParameters();
-            var returnMarshalAsAttribute = Marshalling.MarshalReturnAs is not null ?
-                $"[return: MarshalAs({Marshalling.MarshalReturnAs})]{Constants.NewLineIndent2}" :
+            var returnMarshalAsAttribute = MarshalInfo.MarshalReturnAs is not null ?
+                $"[return: MarshalAs({MarshalInfo.MarshalReturnAs})]{Constants.NewLineIndent2}" :
                 string.Empty;
-            string? returnKeyword;
-            string? returnType;
-            switch (Method.ContainingInterface.IsAction)
-            {
-                case true:
-                    returnKeyword = string.Empty;
-                    returnType = "void";
-                    break;
-                default:
-                    returnKeyword = "return ";
-                    returnType = Method.ContainingInterface.TypeArguments.Last();
-                    break;
-            }
-            var interceptor = Marshalling.StaticCallingConvention is not null ?
+            var returnKeyword = Method.ContainingInterface.ReturnKeyword;
+            var returnType = Method.ContainingInterface.ReturnType;
+            var interceptor = MarshalInfo.StaticCallingConvention is not null ?
                 Interceptor?.SourceText ?? string.Empty :
                 string.Empty;
             if (interceptor != string.Empty)

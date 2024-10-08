@@ -1,11 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
 
 namespace Monkeymoto.NativeGenericDelegates
 {
@@ -18,43 +15,14 @@ namespace Monkeymoto.NativeGenericDelegates
         public IEnumerable<string> Keys => map.Keys;
         public IEnumerable<string?> Values => map.Values;
 
-        public static MarshalMap? Parse
-        (
-            IArgumentOperation? marshalMapArgument,
-            IList<Diagnostic> diagnostics,
-            CancellationToken cancellationToken
-        )
+        public static MarshalMap? Parse(IOperation? value)
         {
-            _ = diagnostics;
-            if (marshalMapArgument is null)
+            if (value is null)
             {
                 return null;
             }
             var builder = ImmutableDictionary.CreateBuilder<string, string?>();
-            var value = marshalMapArgument.Value;
-            var invalidArgumentDiagnostic = Diagnostic.Create
-            (
-                Diagnostics.NGD1004_InvalidMarshalMapArgument,
-                marshalMapArgument.Syntax.GetLocation(),
-                marshalMapArgument.Parameter!.Name
-            );
-            if (value is IFieldReferenceOperation fieldReference && fieldReference.Field.IsReadOnly)
-            {
-                var fieldDeclaration = fieldReference.Field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-                var equalsValueClause = fieldDeclaration.ChildNodes().OfType<EqualsValueClauseSyntax>()
-                    .FirstOrDefault();
-                SemanticModel? semanticModel = equalsValueClause is not null ?
-                    fieldReference.SemanticModel!.Compilation.GetSemanticModel(equalsValueClause.SyntaxTree) :
-                    null;
-                if (semanticModel?.GetOperation(equalsValueClause!, cancellationToken) is not
-                    IFieldInitializerOperation fieldInitializer)
-                {
-                    diagnostics.Add(invalidArgumentDiagnostic);
-                    return null;
-                }
-                value = fieldInitializer.Value;
-            }
-            IObjectCreationOperation? mapCreation = value switch
+            var mapCreation = value switch
             {
                 IConversionOperation conversion => conversion.Operand as IObjectCreationOperation,
                 _ => value as IObjectCreationOperation
@@ -66,43 +34,29 @@ namespace Monkeymoto.NativeGenericDelegates
             var initializers = mapCreation.Initializer.Initializers;
             foreach (var op in initializers)
             {
-                cancellationToken.ThrowIfCancellationRequested();
                 ITypeOfOperation? typeOf;
                 IOperation? marshalAs;
-                if (op is IInvocationOperation invocation)
+                if (op is not IInvocationOperation invocation)
                 {
-                    if (invocation.Arguments.Length != 2)
-                    {
-                        diagnostics.Add(invalidArgumentDiagnostic);
-                        return null;
-                    }
-                    typeOf = invocation.Arguments[0].Value as ITypeOfOperation;
-                    value = invocation.Arguments[1].Value;
-                    marshalAs = value switch
-                    {
-                        IConversionOperation conversion => conversion.Operand as IObjectCreationOperation,
-                        _ => value as IObjectCreationOperation
-                    };
-                }
-                else
-                {
-                    diagnostics.Add(invalidArgumentDiagnostic);
                     return null;
                 }
+                if (invocation.Arguments.Length < 2)
+                {
+                    return null;
+                }
+                typeOf = invocation.Arguments[0].Value as ITypeOfOperation;
+                value = invocation.Arguments[1].Value;
+                marshalAs = value switch
+                {
+                    IConversionOperation conversion => conversion.Operand as IObjectCreationOperation,
+                    _ => value as IObjectCreationOperation
+                };
                 if ((typeOf is null) || (marshalAs is null))
                 {
-                    diagnostics.Add(invalidArgumentDiagnostic);
                     return null;
                 }
                 var key = typeOf.TypeOperand.ToDisplayString();
-                var marshalAsValue = DelegateMarshalling.Parser.GetMarshalAsFromOperation
-                (
-                    marshalAs,
-                    marshalMapArgument.Parameter!.Name,
-                    diagnostics,
-                    diagnosticTypeSuffix: "",
-                    cancellationToken
-                );
+                var marshalAsValue = MarshalInfo.Parser.GetMarshalAsFromOperation(marshalAs);
                 builder[key] = marshalAsValue;
             }
             return new(builder.ToImmutable());
