@@ -121,8 +121,6 @@ using System.Runtime.InteropServices;
 
 namespace {Constants.RootNamespace}
 {{
-    internal sealed class DefaultMarshaller : IMarshaller<DefaultMarshaller> {{ }}
-    
     internal interface IMarshaller<TSelf> where TSelf : IMarshaller<TSelf>
     {{
         protected static virtual CallingConvention? CallingConvention => null;
