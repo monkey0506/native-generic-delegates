@@ -31,7 +31,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 $"{RootNamespace}.INativeFunc`14",
                 $"{RootNamespace}.INativeFunc`15",
                 $"{RootNamespace}.INativeFunc`16",
-                $"{RootNamespace}.INativeFunc`17",
+                $"{RootNamespace}.INativeFunc`17"
             ];
 
             public static readonly string[] QualifiedTypeParameters =

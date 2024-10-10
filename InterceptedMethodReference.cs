@@ -18,13 +18,13 @@ namespace Monkeymoto.NativeGenericDelegates
         {
             Interceptor = interceptor;
             MethodReference = methodReference;
-            hashCode = Hash.Combine(MethodReference.Method, MethodReference.Marshalling);
+            hashCode = Hash.Combine(MethodReference.Method, MethodReference.MarshalInfo);
         }
 
         public override bool Equals(object? obj) => obj is InterceptedMethodReference other && Equals(other);
         public bool Equals(InterceptedMethodReference? other) => (other is not null) &&
             (MethodReference.Method == other.MethodReference.Method) &&
-            (MethodReference.Marshalling == other.MethodReference.Marshalling);
+            (MethodReference.MarshalInfo == other.MethodReference.MarshalInfo);
         public override int GetHashCode() => hashCode;
     }
 }

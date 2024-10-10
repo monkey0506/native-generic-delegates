@@ -62,8 +62,9 @@ namespace Monkeymoto.NativeGenericDelegates
 
         public static readonly string[] InterceptorAntiConstraints =
         [
-            .. AntiConstraints.Select(static x => x.Replace('T', 'X')),
-            $"{AntiConstraint_T1_T16.Replace('T', 'X')}{NewLineIndent2}where X17 : allows ref struct"
+            .. AntiConstraints.Select(static x => x.Replace("    where T", "        where X").Replace('T', 'X')),
+            $"{AntiConstraint_T1_T16.Replace("    where T", "        where X")
+                .Replace('T', 'X')}{NewLineIndent2}where X17 : allows ref struct"
         ];
 
         public static readonly string[] Arguments =
@@ -110,6 +111,9 @@ namespace Monkeymoto.NativeGenericDelegates
         public const string FromFunctionPointerIdentifier = "FromFunctionPointer";
         public const string RootNamespace = "Monkeymoto.NativeGenericDelegates";
         public const string DeclarationsSourceFileName = RootNamespace + ".Declarations.g.cs";
+
+        public const string IMarshallerInterfaceName = "IMarshaller";
+        public const string IMarshallerMetadataName = $"{RootNamespace}.{IMarshallerInterfaceName}`1";
 
         /// <summary>
         /// Returns the total number of interfaces per category (Action or Func).

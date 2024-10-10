@@ -8,44 +8,62 @@ using System.Threading;
 
 namespace Monkeymoto.NativeGenericDelegates
 {
-    internal readonly struct InterfaceSymbolCollection :
-        IEquatable<InterfaceSymbolCollection>,
+    internal readonly struct InterfaceOrMethodSymbolCollection :
+        IEquatable<InterfaceOrMethodSymbolCollection>,
         IEnumerable<ISymbol>
     {
         private readonly int hashCode;
         private readonly ImmutableList<ISymbol> symbols;
 
-        public static bool operator ==(InterfaceSymbolCollection left, InterfaceSymbolCollection right) =>
-            left.Equals(right);
-        public static bool operator !=(InterfaceSymbolCollection left, InterfaceSymbolCollection right) =>
-            !(left == right);
+        public static bool operator ==
+        (
+            InterfaceOrMethodSymbolCollection left,
+            InterfaceOrMethodSymbolCollection right
+        ) =>left.Equals(right);
 
-        public static IncrementalValueProvider<InterfaceSymbolCollection> GetSymbols
+        public static bool operator !=
+        (
+            InterfaceOrMethodSymbolCollection left,
+            InterfaceOrMethodSymbolCollection right
+        ) => !(left == right);
+
+        public static IncrementalValueProvider<InterfaceOrMethodSymbolCollection> GetSymbols
         (
             IncrementalValueProvider<Compilation> compilationProvider
         ) => compilationProvider.Select
         (
-            static (compilation, cancellationToken) => new InterfaceSymbolCollection(compilation, cancellationToken)
+            static (compilation, cancellationToken) =>
+                new InterfaceOrMethodSymbolCollection(compilation, cancellationToken)
         );
 
-        public InterfaceSymbolCollection(Compilation compilation, CancellationToken cancellationToken)
+        public InterfaceOrMethodSymbolCollection(Compilation compilation, CancellationToken cancellationToken)
         {
             var builder = ImmutableList.CreateBuilder<ISymbol>();
             for (int i = 0; i < Constants.InterfaceSymbolCountPerCategory; ++i)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var interfaceSymbol = compilation.GetTypeByMetadataName(Constants.Actions.MetadataNames[i])!;
+                // GetMembers *seems* to be ordered, but this is not a documented part of the API
+                // explicitly order the members for Equals comparisons
+                var genericMethods = interfaceSymbol.GetMembers()
+                    .Where(static x => x is IMethodSymbol methodSymbol && methodSymbol.IsGenericMethod)
+                    .OrderBy(static x => x.Name);
                 builder.Add(interfaceSymbol);
+                builder.AddRange(genericMethods);
                 interfaceSymbol = compilation.GetTypeByMetadataName(Constants.Funcs.MetadataNames[i])!;
+                genericMethods = interfaceSymbol.GetMembers()
+                    .Where(static x => x is IMethodSymbol methodSymbol && methodSymbol.IsGenericMethod)
+                    .OrderBy(static x => x.Name);
                 builder.Add(interfaceSymbol);
+                builder.AddRange(genericMethods);
             }
             symbols = builder.ToImmutable();
             hashCode = Hash.Combine(symbols);
         }
 
-        public override bool Equals(object? obj) => obj is InterfaceSymbolCollection other && Equals(other);
+        public override bool Equals(object? obj) => obj is InterfaceOrMethodSymbolCollection other && Equals(other);
 
-        public bool Equals(InterfaceSymbolCollection other)
+        public bool Equals(InterfaceOrMethodSymbolCollection other)
         {
             if (symbols.Count != other.symbols.Count)
             {

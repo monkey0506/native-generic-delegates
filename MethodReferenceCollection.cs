@@ -13,8 +13,6 @@ namespace Monkeymoto.NativeGenericDelegates
         private readonly int hashCode;
         private readonly ImmutableHashSet<MethodReference> references;
 
-        public IReadOnlyList<Diagnostic> Diagnostics { get; }
-
         public static bool operator ==(MethodReferenceCollection left, MethodReferenceCollection right) =>
             left.Equals(right);
         public static bool operator !=(MethodReferenceCollection left, MethodReferenceCollection right) =>
@@ -22,35 +20,24 @@ namespace Monkeymoto.NativeGenericDelegates
 
         public static IncrementalValueProvider<MethodReferenceCollection> GetReferences
         (
-            IncrementalValueProvider<InterfaceReferenceCollection> interfaceOrMethodReferencesProvider
+            IncrementalValueProvider<InterfaceOrMethodReferenceCollection> interfaceOrMethodReferencesProvider
         ) => interfaceOrMethodReferencesProvider.Select(static (interfaceOrMethodReferences, cancellationToken) =>
         {
             var builder = ImmutableHashSet.CreateBuilder<MethodReference>();
-            var diagnostics = new List<Diagnostic>();
             foreach (var interfaceOrMethodReference in interfaceOrMethodReferences)
             {
-                var methodReference =
-                    MethodReference.GetReference(interfaceOrMethodReference, diagnostics, cancellationToken);
+                var methodReference = MethodReference.GetReference(interfaceOrMethodReference, cancellationToken);
                 if (methodReference is not null)
                 {
                     _ = builder.Add(methodReference);
                 }
             }
-            return new MethodReferenceCollection
-            (
-                builder.ToImmutable(),
-                diagnostics.AsReadOnly()
-            );
+            return new MethodReferenceCollection(builder.ToImmutable());
         });
 
-        private MethodReferenceCollection
-        (
-            ImmutableHashSet<MethodReference> references,
-            IReadOnlyList<Diagnostic> diagnostics
-        )
+        private MethodReferenceCollection(ImmutableHashSet<MethodReference> references)
         {
             this.references = references;
-            Diagnostics = diagnostics;
             hashCode = Hash.Combine(references);
         }
 

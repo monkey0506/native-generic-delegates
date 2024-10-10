@@ -6,48 +6,67 @@ namespace Monkeymoto.NativeGenericDelegates
     {
         private static void BuildInterfaceDefinition(StringBuilder sb, bool isAction, int argumentCount)
         {
-            string? marshalReturnAsParameter;
             string? qualifiedTypeParameters;
             string? returnType;
             string? type;
             string? typeParameters;
             string? antiConstraints;
+            bool hasGenericMethods = true;
             if (isAction)
             {
-                marshalReturnAsParameter = string.Empty;
                 returnType = "void";
                 type = Constants.CategoryAction;
                 antiConstraints = Constants.Actions.AntiConstraints[argumentCount];
                 if (argumentCount != 0)
                 {
                     qualifiedTypeParameters = $"<{Constants.Actions.QualifiedTypeParameters[argumentCount]}>";
-                    typeParameters = $"<{Constants.Actions.TypeParameters[argumentCount]}>";
+                    typeParameters = $"<{Constants.Actions.TypeParameters[argumentCount]}";
                 }
                 else
                 {
                     qualifiedTypeParameters = string.Empty;
                     typeParameters = string.Empty;
+                    hasGenericMethods = false;
                 }
             }
             else
             {
-                marshalReturnAsParameter = $",{Constants.NewLineIndent3}MarshalAsAttribute? marshalReturnAs = null";
                 qualifiedTypeParameters = $"<{Constants.Funcs.QualifiedTypeParameters[argumentCount]}>";
                 returnType = "TResult";
                 type = Constants.CategoryFunc;
-                typeParameters = $"<{Constants.Funcs.TypeParameters[argumentCount]}>";
+                typeParameters = $"<{Constants.Funcs.TypeParameters[argumentCount]}";
                 antiConstraints = Constants.Funcs.AntiConstraints[argumentCount];
             }
             string genericType = $"{type}{typeParameters}";
+            if (typeParameters.Length != 0)
+            {
+                genericType = $"{genericType}>";
+                typeParameters = $"{typeParameters}>";
+            }
+            string fullType = $"INative{type}{typeParameters}";
             string parameters = Constants.Parameters[argumentCount];
             string typeAsArgument = type.ToLower();
-            string callingConvention =
-                $",{Constants.NewLineIndent3}CallingConvention callingConvention = CallingConvention.Winapi";
-            string marshalParamsAsParameter = argumentCount != 0 ?
-                $",{Constants.NewLineIndent3}MarshalAsAttribute?[]? marshalParamsAs = null" :
-                string.Empty;
-            string marshalMap = argumentCount != 0 ?
-                $",{Constants.NewLineIndent3}MarshalMap? marshalMap = null" :
+            string callingConvention = $",{Constants.NewLineIndent3}CallingConvention callingConvention = CallingConvention.Winapi";
+            string genericMethods = hasGenericMethods ?
+     $@"
+        
+        public static {fullType} From{type}<TMarshaller>
+        (
+            {genericType} {typeAsArgument}{callingConvention}
+        )
+            where TMarshaller : IMarshaller<TMarshaller>, new()
+        {{
+            throw new NotImplementedException();
+        }}
+        
+        public static {fullType} FromFunctionPointer<TMarshaller>
+        (
+            nint functionPtr{callingConvention}
+        )
+            where TMarshaller : IMarshaller<TMarshaller>, new()
+        {{
+            throw new NotImplementedException();
+        }}" :
                 string.Empty;
             _ = sb.Append
             (
@@ -55,22 +74,22 @@ $@"    internal interface INative{type}{qualifiedTypeParameters}{antiConstraints
     {{
         protected object? Target {{ get; }}
         protected MethodInfo Method {{ get; }}
-
-        public static INative{genericType} From{type}
+        
+        public static {fullType} From{type}
         (
-            {genericType} {typeAsArgument}{callingConvention}{marshalMap}{marshalReturnAsParameter}{marshalParamsAsParameter}
+            {genericType} {typeAsArgument}{callingConvention}
         )
         {{
             throw new NotImplementedException();
         }}
-
-        public static INative{genericType} FromFunctionPointer
+        
+        public static {fullType} FromFunctionPointer
         (
-            nint functionPtr{callingConvention}{marshalMap}{marshalReturnAsParameter}{marshalParamsAsParameter}
+            nint functionPtr{callingConvention}
         )
         {{
             throw new NotImplementedException();
-        }}
+        }}{genericMethods}
 
         public nint GetFunctionPointer();
         public {returnType} Invoke({parameters});
@@ -101,7 +120,15 @@ using System.Runtime.InteropServices;
 #nullable enable
 
 namespace {Constants.RootNamespace}
-{{"
+{{
+    internal interface IMarshaller<TSelf> where TSelf : IMarshaller<TSelf>
+    {{
+        protected static virtual CallingConvention? CallingConvention => null;
+        protected static virtual MarshalMap? MarshalMap => null;
+        protected static virtual MarshalAsAttribute?[]? MarshalParamsAs => null;
+        protected static virtual MarshalAsAttribute? MarshalReturnAs => null;
+    }}
+    "
             );
             for (int i = 0; i < 17; ++i)
             {
@@ -110,7 +137,7 @@ namespace {Constants.RootNamespace}
             }
             _ = source.AppendLine
             (
-$@"
+ $@"
     internal sealed class MarshalMap : IEnumerable<KeyValuePair<Type, MarshalAsAttribute>>
     {{
         public MarshalMap() {{ }}

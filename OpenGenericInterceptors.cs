@@ -45,10 +45,12 @@ namespace Monkeymoto.NativeGenericDelegates
                 Debug.Assert(attributes.ContainsKey(kv.Key));
                 var first = kv.Value.First();
                 var typeParameters = Constants.InterceptorTypeParameters[first.Method.ContainingInterface.Arity];
-                typeParameters = typeParameters.Length != 0 ?
-                    $"<{typeParameters}>" :
-                    typeParameters;
-                var interfaceName = $"{first.Method.ContainingInterface.Name}{typeParameters}";
+                var interfaceName = $"{first.Method.ContainingInterface.Name}<{typeParameters}>";
+                typeParameters = first.Method.Arity != 0 ?
+                    $"<{typeParameters}, XMarshaller>" :
+                    typeParameters.Length != 0 ?
+                        $"<{typeParameters}>" :
+                        typeParameters;
                 var methodHash = kv.Key.GetHashCode();
                 var methodName = first.Method.Name;
                 var parameters = first.Method.InterceptorParameters;
@@ -97,7 +99,7 @@ namespace Monkeymoto.NativeGenericDelegates
                     {
                         firstParam = $"({method.ContainingInterface.Category}{method.ContainingInterface.TypeArgumentList})(object){firstParam}";
                     }
-                    if (kv.Value[i].Marshalling.StaticCallingConvention is not null)
+                    if (kv.Value[i].MarshalInfo.StaticCallingConvention is not null)
                     {
                         _ = sb.AppendLine
                         (

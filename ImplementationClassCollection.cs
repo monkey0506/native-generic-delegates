@@ -45,7 +45,8 @@ namespace Monkeymoto.NativeGenericDelegates
                             openGenericInterceptorsBuilder,
                             x.Key.MethodReference.Method,
                             x.Key.MethodReference.IsInterfaceOrMethodOpenGeneric,
-                            x.Key.MethodReference.Marshalling,
+                            x.Key.MethodReference.MarshalInfo,
+                            x.Key.MethodReference.InvocationArgumentCount,
                             x.Value.AsReadOnly()
                         )
                     )

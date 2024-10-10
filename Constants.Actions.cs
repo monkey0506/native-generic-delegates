@@ -24,7 +24,7 @@
                 $"{RootNamespace}.INativeAction`13",
                 $"{RootNamespace}.INativeAction`14",
                 $"{RootNamespace}.INativeAction`15",
-                $"{RootNamespace}.INativeAction`16",
+                $"{RootNamespace}.INativeAction`16"
             ];
 
             public static readonly string[] QualifiedTypeParameters = Constants.QualifiedTypeParameters;

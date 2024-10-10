@@ -48,9 +48,11 @@ namespace Monkeymoto.NativeGenericDelegates
             }
             var method = InterceptsMethod;
             var typeParameters = Constants.InterceptorTypeParameters[method.ContainingInterface.Arity];
-            typeParameters = typeParameters.Length != 0 ?
-                $"<{typeParameters}>" :
-                typeParameters;
+            typeParameters = method.Arity != 0 ?
+                $"<{typeParameters}, XMarshaller>" :
+                typeParameters.Length != 0 ?
+                    $"<{typeParameters}>" :
+                    typeParameters;
             _ = sb.Append
             (
      $@"[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -60,7 +62,7 @@ namespace Monkeymoto.NativeGenericDelegates
         ){Constants.InterceptorAntiConstraints[method.ContainingInterface.Arity]}
         {{"
             );
-            if (ImplementationClass.Marshalling.StaticCallingConvention is not null)
+            if (ImplementationClass.MarshalInfo.StaticCallingConvention is not null)
             {
                 _ = sb.Append
                 (

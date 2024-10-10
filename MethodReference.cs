@@ -1,8 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Monkeymoto.GeneratorUtils;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -16,9 +16,10 @@ namespace Monkeymoto.NativeGenericDelegates
         public string FilePath { get; }
         public string InterceptorAttributeSourceText { get; }
         public InterfaceDescriptor Interface { get; }
+        public int InvocationArgumentCount { get; }
         public bool IsInterfaceOrMethodOpenGeneric { get; }
         public int Line { get; }
-        public DelegateMarshalling Marshalling { get; }
+        public MarshalInfo MarshalInfo { get; }
         public MethodDescriptor Method { get; }
 
         public static bool operator ==(MethodReference? left, MethodReference? right) =>
@@ -28,7 +29,6 @@ namespace Monkeymoto.NativeGenericDelegates
         public static MethodReference? GetReference
         (
             GenericSymbolReference interfaceOrMethodReference,
-            IList<Diagnostic> diagnostics,
             CancellationToken cancellationToken
         )
         {
@@ -36,9 +36,14 @@ namespace Monkeymoto.NativeGenericDelegates
             IMethodSymbol? methodSymbol;
             InvocationExpressionSyntax? invocationExpression;
             var node = interfaceOrMethodReference.Node;
-            if (node.Parent?.Parent is InvocationExpressionSyntax methodInvocationExpression)
+            if (node is InvocationExpressionSyntax genericMethodInvocationExpression)
             {
-                // non-generic methods (FromAction, FromFunc, FromFunctionPointer)
+                methodSymbol = (IMethodSymbol)interfaceOrMethodReference.Symbol;
+                interfaceSymbol = methodSymbol.ContainingType;
+                invocationExpression = genericMethodInvocationExpression;
+            }
+            else if (node.Parent?.Parent is InvocationExpressionSyntax methodInvocationExpression)
+            {
                 var methodNameSyntax = ((MemberAccessExpressionSyntax)node.Parent).Name;
                 if (methodNameSyntax.Arity != 0)
                 {
@@ -53,18 +58,27 @@ namespace Monkeymoto.NativeGenericDelegates
             {
                 return null;
             }
+            var semanticModel = interfaceOrMethodReference.SemanticModel!;
+            int invocationArgumentCount = 0;
+            var invocation =
+                semanticModel.GetOperation(invocationExpression, cancellationToken) as IInvocationOperation;
+            if (invocation is not null)
+            {
+                invocationArgumentCount = invocation.Arguments.Length -
+                    invocation.Arguments.Where(static x => x.ArgumentKind != ArgumentKind.Explicit).Count();
+            }
             var interfaceDescriptor = new InterfaceDescriptor(interfaceSymbol);
             var methodDescriptor = new MethodDescriptor
             (
                 interfaceDescriptor,
-                methodSymbol
+                methodSymbol!
             );
-            var methodMarshalling = new DelegateMarshalling
+            var marshalInfo = MarshalInfo.GetMarshalInfo
             (
+                methodSymbol!,
+                interfaceDescriptor,
                 invocationExpression,
                 interfaceOrMethodReference.SemanticModel!,
-                interfaceDescriptor,
-                diagnostics,
                 cancellationToken
             );
             return new MethodReference
@@ -72,8 +86,9 @@ namespace Monkeymoto.NativeGenericDelegates
                 interfaceDescriptor,
                 methodDescriptor,
                 invocationExpression,
-                methodMarshalling,
-                !interfaceOrMethodReference.IsSyntaxReferenceClosedTypeOrMethod
+                marshalInfo,
+                !interfaceOrMethodReference.IsSyntaxReferenceClosedTypeOrMethod,
+                invocationArgumentCount
             );
         }
 
@@ -82,8 +97,9 @@ namespace Monkeymoto.NativeGenericDelegates
             InterfaceDescriptor interfaceDescriptor,
             MethodDescriptor methodDescriptor,
             InvocationExpressionSyntax invocationExpression,
-            DelegateMarshalling marshalling,
-            bool isInterfaceOrMethodOpenGeneric
+            MarshalInfo marshalInfo,
+            bool isInterfaceOrMethodOpenGeneric,
+            int invocationArgumentCount
         )
         {
             var methodNode = ((MemberAccessExpressionSyntax)invocationExpression.Expression).Name;
@@ -93,15 +109,16 @@ namespace Monkeymoto.NativeGenericDelegates
             Interface = interfaceDescriptor;
             IsInterfaceOrMethodOpenGeneric = isInterfaceOrMethodOpenGeneric;
             Line = linePosition.Line + 1;
-            Marshalling = marshalling;
+            MarshalInfo = marshalInfo;
             Method = methodDescriptor;
             InterceptorAttributeSourceText = $"[InterceptsLocation(@\"{FilePath}\", {Line}, {Character})]";
-            hashCode = Hash.Combine(Character, FilePath, Interface, Line);
+            InvocationArgumentCount = invocationArgumentCount;
+            hashCode = Hash.Combine(Character, FilePath, Line);
         }
 
         public override bool Equals(object? obj) => obj is MethodReference other && Equals(other);
         public bool Equals(MethodReference? other) => (other is not null) && (Character == other.Character) &&
-            (Line == other.Line) && (FilePath == other.FilePath);
+             (FilePath == other.FilePath) && (Line == other.Line);
         public override int GetHashCode() => hashCode;
     }
 }

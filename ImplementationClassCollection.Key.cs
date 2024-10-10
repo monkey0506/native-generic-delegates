@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace Monkeymoto.NativeGenericDelegates
 {
@@ -20,12 +19,18 @@ namespace Monkeymoto.NativeGenericDelegates
             public Key(MethodReference methodReference)
             {
                 MethodReference = methodReference;
-                hashCode = Hash.Combine(MethodReference.Method, MethodReference.Marshalling);
+                hashCode = Hash.Combine
+                (
+                    MethodReference.Method,
+                    MethodReference.InvocationArgumentCount,
+                    MethodReference.MarshalInfo
+                );
             }
 
             public override bool Equals(object? obj) => obj is Key other && Equals(other);
             public bool Equals(Key other) => (MethodReference.Method == other.MethodReference.Method) &&
-                (MethodReference.Marshalling == other.MethodReference.Marshalling);
+                (MethodReference.InvocationArgumentCount == other.MethodReference.InvocationArgumentCount) &&
+                (MethodReference.MarshalInfo == other.MethodReference.MarshalInfo);
             public override int GetHashCode() => hashCode;
         }
     }
