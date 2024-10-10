@@ -52,7 +52,14 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace {Constants.RootNamespace}
-{{"
+{{
+    file static class NativeGenericDelegates
+    {{
+        public static CallingConvention PlatformDefaultCallingConvention =
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                CallingConvention.StdCall :
+                CallingConvention.Cdecl;
+    }}"
                     );
                     foreach (var implementationClass in implementationClasses)
                     {

@@ -80,6 +80,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 (
                     marshaller,
                     interfaceDescriptor,
+                    methodDescriptor,
                     invocationExpression,
                     semanticModel,
                     cancellationToken

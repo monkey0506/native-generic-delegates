@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
@@ -38,18 +39,27 @@ namespace Monkeymoto.NativeGenericDelegates
 
         public InterfaceOrMethodSymbolCollection(Compilation compilation, CancellationToken cancellationToken)
         {
+            Debug.Assert
+            (
+                Constants.Actions.MetadataNames.Length == Constants.Funcs.MetadataNames.Length,
+                $"{nameof(Constants)}: Metdata name arrays must be of same length."
+            );
             var builder = ImmutableList.CreateBuilder<ISymbol>();
-            for (int i = 0; i < Constants.InterfaceSymbolCountPerCategory; ++i)
+            IOrderedEnumerable<ISymbol>? genericMethods;
+            for (int i = 0; i < Constants.Actions.MetadataNames.Length; ++i)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var interfaceSymbol = compilation.GetTypeByMetadataName(Constants.Actions.MetadataNames[i])!;
-                // GetMembers *seems* to be ordered, but this is not a documented part of the API
-                // explicitly order the members for Equals comparisons
-                var genericMethods = interfaceSymbol.GetMembers()
-                    .Where(static x => x is IMethodSymbol methodSymbol && methodSymbol.IsGenericMethod)
-                    .OrderBy(static x => x.Name);
-                builder.Add(interfaceSymbol);
-                builder.AddRange(genericMethods);
+                if (interfaceSymbol is not null)
+                {
+                    // GetMembers *seems* to be ordered, but this is not a documented part of the API
+                    // explicitly order the members for Equals comparisons
+                    genericMethods = interfaceSymbol.GetMembers()
+                        .Where(static x => x is IMethodSymbol methodSymbol && methodSymbol.IsGenericMethod)
+                        .OrderBy(static x => x.Name);
+                    builder.Add(interfaceSymbol);
+                    builder.AddRange(genericMethods);
+                }
                 interfaceSymbol = compilation.GetTypeByMetadataName(Constants.Funcs.MetadataNames[i])!;
                 genericMethods = interfaceSymbol.GetMembers()
                     .Where(static x => x is IMethodSymbol methodSymbol && methodSymbol.IsGenericMethod)

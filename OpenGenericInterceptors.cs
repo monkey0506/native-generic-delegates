@@ -44,8 +44,11 @@ namespace Monkeymoto.NativeGenericDelegates
             {
                 Debug.Assert(attributes.ContainsKey(kv.Key));
                 var first = kv.Value.First();
-                var typeParameters = Constants.InterceptorTypeParameters[first.Method.ContainingInterface.Arity];
-                var interfaceName = $"{first.Method.ContainingInterface.Name}<{typeParameters}>";
+                var firstInterface = first.Method.ContainingInterface;
+                var typeParameters = firstInterface.IsUnmanaged ?
+                    Constants.InterceptorUnmanagedTypeParameters[firstInterface.BaseInterfaceArity] :
+                    Constants.InterceptorTypeParameters[firstInterface.Arity];
+                var interfaceName = $"{firstInterface.Name}<{typeParameters}>";
                 typeParameters = first.Method.Arity != 0 ?
                     $"<{typeParameters}, XMarshaller>" :
                     typeParameters.Length != 0 ?
@@ -54,9 +57,13 @@ namespace Monkeymoto.NativeGenericDelegates
                 var methodHash = kv.Key.GetHashCode();
                 var methodName = first.Method.Name;
                 var parameters = first.Method.InterceptorParameters;
+                var constraints = firstInterface.IsUnmanaged ?
+                    Constants.InterceptorUnmanagedTypeConstraints[firstInterface.BaseInterfaceArity] :
+                    Constants.InterceptorTypeConstraints[firstInterface.Arity];
+                var unsafeKeyword = first.Method.IsFromUnsafeFunctionPointer ? "unsafe " : string.Empty;
                 _ = sb.AppendLine().Append("    ").AppendLine
                 (
- $@"file static class NativeGenericDelegates_{(methodHash < 0 ? $"S{-methodHash}" : $"U{methodHash}")}
+ $@"file static {unsafeKeyword}class NativeGenericDelegates_{(methodHash < 0 ? $"S{-methodHash}" : $"U{methodHash}")}
     {{"
                 );
                 foreach (var attribute in attributes[kv.Key])
@@ -69,7 +76,7 @@ namespace Monkeymoto.NativeGenericDelegates
         public static {interfaceName} {methodName}{typeParameters}
         (
             {parameters}
-        ){Constants.InterceptorAntiConstraints[first.Method.ContainingInterface.Arity]}
+        ){constraints}
         {{"
                 );
                 for (int i = 0; i < kv.Value.Count; ++i)
@@ -97,7 +104,12 @@ namespace Monkeymoto.NativeGenericDelegates
                         _ = sb.Append($"            if{Constants.NewLineIndent3}({Constants.NewLine}");
                         for (int j = 0, k = 1; j < typeArguments.Count; ++j, ++k)
                         {
-                            _ = sb.Append($"                (typeof(X{k}) == typeof({typeArguments[j]}))");
+                            var typeArg = method.ContainingInterface.IsUnmanaged ?
+                                k <= method.ContainingInterface.BaseInterfaceArity ?
+                                    $"XT{(typeArguments.Count != 2 ? k.ToString() : string.Empty)}" :
+                                    $"XU{(typeArguments.Count != 2 ? (k / 2).ToString() : string.Empty)}" :
+                                $"X{k}";
+                            _ = sb.Append($"                (typeof({typeArg}) == typeof({typeArguments[j]}))");
                             if (k != typeArguments.Count)
                             {
                                 _ = sb.AppendLine(" &&");
@@ -107,7 +119,7 @@ namespace Monkeymoto.NativeGenericDelegates
                                 _ = sb.AppendLine($" &&{Constants.NewLineIndent4}(typeof(XMarshaller) == {marshallerType})");
                             }
                         }
-                        _ = sb.Append("            )");
+                        _ = sb.Append($"{Constants.NewLineIndent3})");
                     }
                     _ = sb.Append(Constants.NewLineIndent3);
                     var firstParam = method.FirstParameterName;
@@ -117,10 +129,11 @@ namespace Monkeymoto.NativeGenericDelegates
                     }
                     if (kv.Value[i].MarshalInfo.StaticCallingConvention is not null)
                     {
+                        var cast = method.IsFromUnsafeFunctionPointer ? "(nint)" : string.Empty;
                         _ = sb.AppendLine
                         (
          $@"{{
-                return ({interfaceName})(object)(new {kv.Value[i].ClassName}({firstParam}));
+                return ({interfaceName})(object)(new {kv.Value[i].ClassName}({cast}{firstParam}));
             }}"
                         );
                     }

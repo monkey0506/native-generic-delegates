@@ -1,4 +1,6 @@
-﻿namespace Monkeymoto.NativeGenericDelegates
+﻿using System.Linq;
+
+namespace Monkeymoto.NativeGenericDelegates
 {
     internal static partial class Constants
     {
@@ -24,11 +26,37 @@
                 $"{RootNamespace}.INativeAction`13",
                 $"{RootNamespace}.INativeAction`14",
                 $"{RootNamespace}.INativeAction`15",
-                $"{RootNamespace}.INativeAction`16"
+                $"{RootNamespace}.INativeAction`16",
+                "",
+                $"{RootNamespace}.IUnmanagedAction`2",
+                $"{RootNamespace}.IUnmanagedAction`4",
+                $"{RootNamespace}.IUnmanagedAction`6",
+                $"{RootNamespace}.IUnmanagedAction`8",
+                $"{RootNamespace}.IUnmanagedAction`10",
+                $"{RootNamespace}.IUnmanagedAction`12",
+                $"{RootNamespace}.IUnmanagedAction`14",
+                $"{RootNamespace}.IUnmanagedAction`16",
+                $"{RootNamespace}.IUnmanagedAction`18",
+                $"{RootNamespace}.IUnmanagedAction`20",
+                $"{RootNamespace}.IUnmanagedAction`22",
+                $"{RootNamespace}.IUnmanagedAction`24",
+                $"{RootNamespace}.IUnmanagedAction`26",
+                $"{RootNamespace}.IUnmanagedAction`28",
+                $"{RootNamespace}.IUnmanagedAction`30",
+                $"{RootNamespace}.IUnmanagedAction`32"
             ];
 
             public static readonly string[] QualifiedTypeParameters = Constants.QualifiedTypeParameters;
             public static readonly string[] TypeParameters = Constants.TypeParameters;
+
+            public static readonly string[] UnmanagedConstraints =
+            [
+                .. AntiConstraints.Select(static x =>
+                {
+                    var unmanaged = x.Replace(": allows", ": unmanaged, allows").Replace('T', 'U');
+                    return $"{x}{unmanaged}";
+                })
+            ];
         }
     }
 }

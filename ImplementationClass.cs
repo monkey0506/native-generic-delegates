@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -133,6 +135,19 @@ namespace Monkeymoto.NativeGenericDelegates
                 GetFromFunctionPointerConstructor(classSuffix) :
                 GetFromDelegateConstructor(classSuffix);
             var interfaceFullName = Method.ContainingInterface.FullName;
+            string? baseInterfaceFullName;
+            if (Method.ContainingInterface.IsUnmanaged)
+            {
+                var typeArguments = Method.ContainingInterface.TypeArguments;
+                var baseTypeArguments = typeArguments.Take(typeArguments.Count / 2);
+                var baseTypeArgumentList = $"<{string.Join(", ", baseTypeArguments)}>";
+                baseInterfaceFullName =
+                    $"{Method.ContainingInterface.Name.Replace("Unmanaged", "Native")}{baseTypeArgumentList}";
+            }
+            else
+            {
+                baseInterfaceFullName = interfaceFullName;
+            }
             var invokeParameterCount = Method.ContainingInterface.InvokeParameterCount;
             var invokeParameters = GetInvokeParameters();
             var returnMarshalAsAttribute = MarshalInfo.MarshalReturnAs is not null ?
@@ -147,6 +162,7 @@ namespace Monkeymoto.NativeGenericDelegates
             {
                 interceptor = $"{Constants.NewLineIndent2}{interceptor}";
             }
+            var unmanagedTypeArgumentList = Method.ContainingInterface.UnmanagedTypeArgumentList;
             return
  $@"file sealed class {ClassName}{classSuffix} : {interfaceFullName}
     {{
@@ -155,6 +171,26 @@ namespace Monkeymoto.NativeGenericDelegates
         
         [UnmanagedFunctionPointer(CallingConvention.{callingConvention})]
         {returnMarshalAsAttribute}public delegate {returnType} Handler{invokeParameters};
+        
+#if UNSAFE
+        public unsafe delegate* unmanaged[Cdecl]{unmanagedTypeArgumentList} AsCdeclPtr
+        {{
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => {GetPointerSourceText(callingConvention, CallingConvention.Cdecl, unmanagedTypeArgumentList)};
+        }}
+        
+        public unsafe delegate* unmanaged[Stdcall]{unmanagedTypeArgumentList} AsStdCallPtr
+        {{
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => {GetPointerSourceText(callingConvention, CallingConvention.StdCall, unmanagedTypeArgumentList)};
+        }}
+        
+        public unsafe delegate* unmanaged[Thiscall]{unmanagedTypeArgumentList} AsThisCallPtr
+        {{
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => {GetPointerSourceText(callingConvention, CallingConvention.ThisCall, unmanagedTypeArgumentList)};
+        }}
+#endif // UNSAFE
         
         {constructor}
         
@@ -167,10 +203,48 @@ namespace Monkeymoto.NativeGenericDelegates
             {returnKeyword}handler({Constants.Arguments[invokeParameterCount]});
         }}
         
-        object {interfaceFullName}.Target => handler.Target;
-        MethodInfo {interfaceFullName}.Method => handler.Method;{interceptor}
+        object {baseInterfaceFullName}.Target => handler.Target;
+        MethodInfo {baseInterfaceFullName}.Method => handler.Method;{interceptor}
     }}
     ";
+        }
+
+        private static string GetPointerSourceText
+        (
+            CallingConvention actual,
+            CallingConvention expected,
+            string typeArgumentList
+        )
+        {
+            if (actual == CallingConvention.Winapi)
+            {
+                return expected switch
+                {
+                    CallingConvention.Cdecl =>
+                        $"NativeGenericDelegates.PlatformDefaultCallingConvention == CallingConvention.Cdecl ?" +
+                            Constants.NewLineIndent4 +
+                            GetPointerSourceText(CallingConvention.Cdecl, expected, typeArgumentList) +
+                            $" : {Constants.NewLineIndent4}null",
+                    CallingConvention.StdCall =>
+                        $"NativeGenericDelegates.PlatformDefaultCallingConvention == CallingConvention.StdCall ?" +
+                        Constants.NewLineIndent4 +
+                        GetPointerSourceText(CallingConvention.StdCall, expected, typeArgumentList) +
+                        $" : {Constants.NewLineIndent4}null",
+                    _ => "null",
+                };
+            }
+            if (actual != expected)
+            {
+                return "null";
+            }
+            var callingConvention = actual switch
+            {
+                CallingConvention.Cdecl => "Cdecl",
+                CallingConvention.StdCall => "Stdcall",
+                CallingConvention.ThisCall => "Thiscall",
+                _ => throw new UnreachableException()
+            };
+            return $"(delegate* unmanaged[{callingConvention}]{typeArgumentList})functionPtr";
         }
     }
 }

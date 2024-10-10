@@ -60,13 +60,6 @@ namespace Monkeymoto.NativeGenericDelegates
         private const string AntiConstraint_T1_T16 =
             $"{AntiConstraint_T1_T15}{NewLineIndent2}where T16 : allows ref struct";
 
-        public static readonly string[] InterceptorAntiConstraints =
-        [
-            .. AntiConstraints.Select(static x => x.Replace("    where T", "        where X").Replace('T', 'X')),
-            $"{AntiConstraint_T1_T16.Replace("    where T", "        where X")
-                .Replace('T', 'X')}{NewLineIndent2}where X17 : allows ref struct"
-        ];
-
         public static readonly string[] Arguments =
         [
             Arguments_T0,
@@ -114,11 +107,6 @@ namespace Monkeymoto.NativeGenericDelegates
 
         public const string IMarshallerInterfaceName = "IMarshaller";
         public const string IMarshallerMetadataName = $"{RootNamespace}.{IMarshallerInterfaceName}`1";
-
-        /// <summary>
-        /// Returns the total number of interfaces per category (Action or Func).
-        /// </summary>
-        public const int InterfaceSymbolCountPerCategory = 17;
 
         /// <summary>
         /// Returns a newline for a source text string.
@@ -218,10 +206,27 @@ namespace Monkeymoto.NativeGenericDelegates
         private const string TypeParameters_T1_T15 = $"{TypeParameters_T1_T14}, T15";
         private const string TypeParameters_T1_T16 = $"{TypeParameters_T1_T15}, T16";
 
+        public static readonly string[] InterceptorTypeConstraints =
+        [
+            .. AntiConstraints.Select(static x => x.Replace("    where T", "        where X").Replace('T', 'X')),
+            $"{AntiConstraint_T1_T16.Replace("    where T", "        where X")
+                .Replace('T', 'X')}{NewLineIndent3}where X17 : allows ref struct"
+        ];
+
+        public static readonly string[] InterceptorUnmanagedTypeConstraints =
+        [
+            .. InterceptorTypeConstraints.Select(static x => $"{x.Replace("X", "XT")}{x.Replace("X", "XU").Replace(": allows", ": unmanaged, allows")}")
+        ];
+
         public static readonly string[] InterceptorTypeParameters =
         [
             .. TypeParameters.Select(static x => x.Replace('T', 'X')),
             $"{TypeParameters_T1_T16.Replace('T', 'X')}, X17"
+        ];
+
+        public static readonly string[] InterceptorUnmanagedTypeParameters =
+        [
+            .. InterceptorTypeParameters.Select(static x => $"{x.Replace("X", "XT")}, {x.Replace("X", "XU")}")
         ];
 
         private static readonly string[] QualifiedTypeParameters =
