@@ -28,42 +28,43 @@ namespace Monkeymoto.NativeGenericDelegates
         ];
 
         private const string AntiConstraint_T0 = "";
-        private const string AntiConstraint_T1 = $"{NewLineIndent3}where T : allows ref struct";
+        private const string AntiConstraint_T1 = $"{NewLineIndent2}where T : allows ref struct";
         private const string AntiConstraint_T1_T2 =
-            $"{NewLineIndent3}where T1 : allows ref struct{NewLineIndent3}where T2 : allows ref struct";
+            $"{NewLineIndent2}where T1 : allows ref struct{NewLineIndent2}where T2 : allows ref struct";
         private const string AntiConstraint_T1_T3 =
-            $"{AntiConstraint_T1_T2}{NewLineIndent3}where T3 : allows ref struct";
+            $"{AntiConstraint_T1_T2}{NewLineIndent2}where T3 : allows ref struct";
         private const string AntiConstraint_T1_T4 =
-            $"{AntiConstraint_T1_T3}{NewLineIndent3}where T4 : allows ref struct";
+            $"{AntiConstraint_T1_T3}{NewLineIndent2}where T4 : allows ref struct";
         private const string AntiConstraint_T1_T5 =
-            $"{AntiConstraint_T1_T4}{NewLineIndent3}where T5 : allows ref struct";
+            $"{AntiConstraint_T1_T4}{NewLineIndent2}where T5 : allows ref struct";
         private const string AntiConstraint_T1_T6 =
-            $"{AntiConstraint_T1_T5}{NewLineIndent3}where T6 : allows ref struct";
+            $"{AntiConstraint_T1_T5}{NewLineIndent2}where T6 : allows ref struct";
         private const string AntiConstraint_T1_T7 =
-            $"{AntiConstraint_T1_T6}{NewLineIndent3}where T7 : allows ref struct";
+            $"{AntiConstraint_T1_T6}{NewLineIndent2}where T7 : allows ref struct";
         private const string AntiConstraint_T1_T8 =
-            $"{AntiConstraint_T1_T7}{NewLineIndent3}where T8 : allows ref struct";
+            $"{AntiConstraint_T1_T7}{NewLineIndent2}where T8 : allows ref struct";
         private const string AntiConstraint_T1_T9 =
-            $"{AntiConstraint_T1_T8}{NewLineIndent3}where T9 : allows ref struct";
+            $"{AntiConstraint_T1_T8}{NewLineIndent2}where T9 : allows ref struct";
         private const string AntiConstraint_T1_T10 =
-            $"{AntiConstraint_T1_T9}{NewLineIndent3}where T10 : allows ref struct";
+            $"{AntiConstraint_T1_T9}{NewLineIndent2}where T10 : allows ref struct";
         private const string AntiConstraint_T1_T11 =
-            $"{AntiConstraint_T1_T10}{NewLineIndent3}where T11 : allows ref struct";
+            $"{AntiConstraint_T1_T10}{NewLineIndent2}where T11 : allows ref struct";
         private const string AntiConstraint_T1_T12 =
-            $"{AntiConstraint_T1_T11}{NewLineIndent3}where T12 : allows ref struct";
+            $"{AntiConstraint_T1_T11}{NewLineIndent2}where T12 : allows ref struct";
         private const string AntiConstraint_T1_T13 =
-            $"{AntiConstraint_T1_T12}{NewLineIndent3}where T13 : allows ref struct";
+            $"{AntiConstraint_T1_T12}{NewLineIndent2}where T13 : allows ref struct";
         private const string AntiConstraint_T1_T14 =
-            $"{AntiConstraint_T1_T13}{NewLineIndent3}where T14 : allows ref struct";
+            $"{AntiConstraint_T1_T13}{NewLineIndent2}where T14 : allows ref struct";
         private const string AntiConstraint_T1_T15 =
-            $"{AntiConstraint_T1_T14}{NewLineIndent3}where T15 : allows ref struct";
+            $"{AntiConstraint_T1_T14}{NewLineIndent2}where T15 : allows ref struct";
         private const string AntiConstraint_T1_T16 =
-            $"{AntiConstraint_T1_T15}{NewLineIndent3}where T16 : allows ref struct";
+            $"{AntiConstraint_T1_T15}{NewLineIndent2}where T16 : allows ref struct";
 
         public static readonly string[] InterceptorAntiConstraints =
         [
-            .. AntiConstraints.Select(static x => x.Replace('T', 'X')),
-            $"{AntiConstraint_T1_T16.Replace('T', 'X')}{NewLineIndent3}where X17 : allows ref struct"
+            .. AntiConstraints.Select(static x => x.Replace("    where T", "        where X").Replace('T', 'X')),
+            $"{AntiConstraint_T1_T16.Replace("    where T", "        where X")
+                .Replace('T', 'X')}{NewLineIndent2}where X17 : allows ref struct"
         ];
 
         public static readonly string[] Arguments =
