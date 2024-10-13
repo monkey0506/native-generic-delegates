@@ -136,6 +136,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 GetFromDelegateConstructor(classSuffix);
             var interfaceFullName = Method.ContainingInterface.FullName;
             string? baseInterfaceFullName;
+            string? unmanagedProperties;
             if (Method.ContainingInterface.IsUnmanaged)
             {
                 var typeArguments = Method.ContainingInterface.TypeArguments;
@@ -143,34 +144,9 @@ namespace Monkeymoto.NativeGenericDelegates
                 var baseTypeArgumentList = $"<{string.Join(", ", baseTypeArguments)}>";
                 baseInterfaceFullName =
                     $"{Method.ContainingInterface.Name.Replace("Unmanaged", "Native")}{baseTypeArgumentList}";
-            }
-            else
-            {
-                baseInterfaceFullName = interfaceFullName;
-            }
-            var invokeParameterCount = Method.ContainingInterface.InvokeParameterCount;
-            var invokeParameters = GetInvokeParameters();
-            var returnMarshalAsAttribute = MarshalInfo.MarshalReturnAs is not null ?
-                $"[return: MarshalAs({MarshalInfo.MarshalReturnAs})]{Constants.NewLineIndent2}" :
-                string.Empty;
-            var returnKeyword = Method.ContainingInterface.ReturnKeyword;
-            var returnType = Method.ContainingInterface.ReturnType;
-            var interceptor = MarshalInfo.StaticCallingConvention is not null ?
-                Interceptor?.SourceText ?? string.Empty :
-                string.Empty;
-            if (interceptor != string.Empty)
-            {
-                interceptor = $"{Constants.NewLineIndent2}{interceptor}";
-            }
-            var unmanagedTypeArgumentList = Method.ContainingInterface.UnmanagedTypeArgumentList;
-            return
- $@"file sealed class {ClassName}{classSuffix} : {interfaceFullName}
-    {{
-        private readonly Handler handler;
-        private readonly nint functionPtr;
-        
-        [UnmanagedFunctionPointer(CallingConvention.{callingConvention})]
-        {returnMarshalAsAttribute}public delegate {returnType} Handler{invokeParameters};
+                var unmanagedTypeArgumentList = Method.ContainingInterface.UnmanagedTypeArgumentList;
+                unmanagedProperties =
+$@"
         
 #if UNSAFE
         public unsafe delegate* unmanaged[Cdecl]{unmanagedTypeArgumentList} AsCdeclPtr
@@ -190,7 +166,35 @@ namespace Monkeymoto.NativeGenericDelegates
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => {GetPointerSourceText(callingConvention, CallingConvention.ThisCall, unmanagedTypeArgumentList)};
         }}
-#endif // UNSAFE
+#endif // UNSAFE";
+            }
+            else
+            {
+                baseInterfaceFullName = interfaceFullName;
+                unmanagedProperties = string.Empty;
+            }
+            var invokeParameterCount = Method.ContainingInterface.InvokeParameterCount;
+            var invokeParameters = GetInvokeParameters();
+            var returnMarshalAsAttribute = MarshalInfo.MarshalReturnAs is not null ?
+                $"[return: MarshalAs({MarshalInfo.MarshalReturnAs})]{Constants.NewLineIndent2}" :
+                string.Empty;
+            var returnKeyword = Method.ContainingInterface.ReturnKeyword;
+            var returnType = Method.ContainingInterface.ReturnType;
+            var interceptor = MarshalInfo.StaticCallingConvention is not null ?
+                Interceptor?.SourceText ?? string.Empty :
+                string.Empty;
+            if (interceptor != string.Empty)
+            {
+                interceptor = $"{Constants.NewLineIndent2}{interceptor}";
+            }
+            return
+ $@"file sealed class {ClassName}{classSuffix} : {interfaceFullName}
+    {{
+        private readonly Handler handler;
+        private readonly nint functionPtr;
+        
+        [UnmanagedFunctionPointer(CallingConvention.{callingConvention})]
+        {returnMarshalAsAttribute}public delegate {returnType} Handler{invokeParameters};{unmanagedProperties}
         
         {constructor}
         
