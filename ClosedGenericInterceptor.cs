@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -12,7 +11,7 @@ namespace Monkeymoto.NativeGenericDelegates
         private readonly int hashCode;
 
         public ImplementationClass ImplementationClass { get; }
-        public ImmutableArray<InterceptedMethodReference> InterceptedMethodReferences { get; }
+        public ImmutableArray<MethodReference> InterceptedMethodReferences { get; }
         public MethodDescriptor InterceptsMethod { get; }
         public string SourceText { get; }
 
@@ -30,7 +29,7 @@ namespace Monkeymoto.NativeGenericDelegates
         {
             ImplementationClass = implementationClass;
             InterceptsMethod = interceptsMethod;
-            InterceptedMethodReferences = [.. methodReferences.Select(x => new InterceptedMethodReference(x, this))];
+            InterceptedMethodReferences = [.. methodReferences];
             SourceText = GetSourceText();
             hashCode = SourceText.GetHashCode();
         }
@@ -42,9 +41,9 @@ namespace Monkeymoto.NativeGenericDelegates
         private string GetSourceText()
         {
             var sb = new StringBuilder($"{Constants.NewLineIndent2}");
-            foreach (var reference in InterceptedMethodReferences.Select(x => x.MethodReference))
+            foreach (var reference in InterceptedMethodReferences)
             {
-                _ = sb.Append(reference.InterceptorAttributeSourceText).Append($"{Constants.NewLineIndent2}");
+                _ = sb.Append(reference.Location.AttributeSourceText).Append($"{Constants.NewLineIndent2}");
             }
             var method = InterceptsMethod;
             var typeParameters = Constants.InterceptorTypeParameters[method.ContainingInterface.Arity];

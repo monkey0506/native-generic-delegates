@@ -23,6 +23,7 @@ namespace Monkeymoto.NativeGenericDelegates
             bool isInterfaceOrMethodOpenGeneric,
             MarshalInfo marshalInfo,
             int invocationArgumentCount,
+            InterceptedLocation location,
             IReadOnlyList<MethodReference> methodReferences
         )
         {
@@ -37,7 +38,7 @@ namespace Monkeymoto.NativeGenericDelegates
             }
             else
             {
-                openGenericInterceptorsBuilder.Add(this, methodReferences);
+                openGenericInterceptorsBuilder.Add(this, location, methodReferences);
             }
             SourceText = GetSourceText();
             hashCode = SourceText.GetHashCode();
