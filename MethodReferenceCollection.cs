@@ -20,16 +20,21 @@ namespace Monkeymoto.NativeGenericDelegates
 
         public static IncrementalValueProvider<MethodReferenceCollection> GetReferences
         (
-            IncrementalValueProvider<InterfaceOrMethodReferenceCollection> interfaceOrMethodReferencesProvider
-        ) => interfaceOrMethodReferencesProvider.Select(static (interfaceOrMethodReferences, cancellationToken) =>
+            IncrementalValueProvider<InterfaceReferenceCollection> interfaceReferencesProvider
+        ) => interfaceReferencesProvider.Select(static (interfaceReferences, cancellationToken) =>
         {
             var builder = ImmutableHashSet.CreateBuilder<MethodReference>();
-            foreach (var interfaceOrMethodReference in interfaceOrMethodReferences)
+            foreach (var interfaceReference in interfaceReferences)
             {
-                var methodReference = MethodReference.GetReference(interfaceOrMethodReference, cancellationToken);
-                if (methodReference is not null)
+                var methodReferences = MethodReference.GetReferences
+                (
+                    interfaceReference,
+                    interfaceReferences.GetGenericMethodReferences,
+                    cancellationToken
+                );
+                if (methodReferences is not null)
                 {
-                    _ = builder.Add(methodReference);
+                    builder.UnionWith(methodReferences);
                 }
             }
             return new MethodReferenceCollection(builder.ToImmutable());
