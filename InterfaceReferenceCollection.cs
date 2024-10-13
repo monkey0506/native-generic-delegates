@@ -86,7 +86,7 @@ namespace Monkeymoto.NativeGenericDelegates
             methodSymbol = methodSymbol.OriginalDefinition;
             return methodReferences.Where
             (
-                x => SymbolEqualityComparer.Default.Equals(x.Symbol, methodSymbol) &&
+                x => SymbolEqualityComparer.Default.Equals(x.Symbol.OriginalDefinition, methodSymbol) &&
                     x.Node.IsEquivalentTo(invocationExpression)
             ).ToImmutableList();
         }
