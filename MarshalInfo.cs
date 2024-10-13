@@ -49,14 +49,14 @@ namespace Monkeymoto.NativeGenericDelegates
 
         public static MarshalInfo GetMarshalInfo
         (
-            IMethodSymbol methodSymbol,
+            INamedTypeSymbol? marshaller,
             InterfaceDescriptor interfaceDescriptor,
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken
         )
         {
-            if (methodSymbol.TypeArguments.FirstOrDefault() is not INamedTypeSymbol marshaller)
+            if (marshaller is null)
             {
                 return new(invocationExpression, semanticModel, cancellationToken);
             }
@@ -159,8 +159,6 @@ namespace Monkeymoto.NativeGenericDelegates
             }
             return null;
         }
-
-        private MarshalInfo() { }
 
         private MarshalInfo
         (

@@ -34,9 +34,8 @@ namespace Monkeymoto.NativeGenericDelegates
             context.RegisterPostInitializationOutput(static context =>
                 context.AddSource(Constants.DeclarationsSourceFileName, PostInitialization.GetSourceText()));
             var interfaceOrMethodSymbols = InterfaceOrMethodSymbolCollection.GetSymbols(context.CompilationProvider);
-            var interfaceOrMethodReferences =
-                InterfaceOrMethodReferenceCollection.GetReferences(context, interfaceOrMethodSymbols);
-            var methodReferences = MethodReferenceCollection.GetReferences(interfaceOrMethodReferences);
+            var interfaceReferences = InterfaceReferenceCollection.GetReferences(context, interfaceOrMethodSymbols);
+            var methodReferences = MethodReferenceCollection.GetReferences(interfaceReferences);
             var implementationClasses = ImplementationClassCollection.GetImplementationClasses(methodReferences);
             context.RegisterImplementationSourceOutput
             (
