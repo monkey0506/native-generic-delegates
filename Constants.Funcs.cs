@@ -31,7 +31,24 @@ namespace Monkeymoto.NativeGenericDelegates
                 $"{RootNamespace}.INativeFunc`14",
                 $"{RootNamespace}.INativeFunc`15",
                 $"{RootNamespace}.INativeFunc`16",
-                $"{RootNamespace}.INativeFunc`17"
+                $"{RootNamespace}.INativeFunc`17",
+                $"{RootNamespace}.IUnmanagedFunc`2",
+                $"{RootNamespace}.IUnmanagedFunc`4",
+                $"{RootNamespace}.IUnmanagedFunc`6",
+                $"{RootNamespace}.IUnmanagedFunc`8",
+                $"{RootNamespace}.IUnmanagedFunc`10",
+                $"{RootNamespace}.IUnmanagedFunc`12",
+                $"{RootNamespace}.IUnmanagedFunc`14",
+                $"{RootNamespace}.IUnmanagedFunc`16",
+                $"{RootNamespace}.IUnmanagedFunc`18",
+                $"{RootNamespace}.IUnmanagedFunc`20",
+                $"{RootNamespace}.IUnmanagedFunc`22",
+                $"{RootNamespace}.IUnmanagedFunc`24",
+                $"{RootNamespace}.IUnmanagedFunc`26",
+                $"{RootNamespace}.IUnmanagedFunc`28",
+                $"{RootNamespace}.IUnmanagedFunc`30",
+                $"{RootNamespace}.IUnmanagedFunc`32",
+                $"{RootNamespace}.IUnmanagedFunc`34"
             ];
 
             public static readonly string[] QualifiedTypeParameters =
@@ -44,6 +61,15 @@ namespace Monkeymoto.NativeGenericDelegates
             [
                 "TResult",
                 .. Constants.TypeParameters.Skip(1).Select(x => $"{x}, TResult")
+            ];
+
+            public static readonly string[] UnmanagedConstraints =
+            [
+                .. AntiConstraints.Select(static x =>
+                {
+                    var unmanaged = x.Replace(": allows", ": unmanaged, allows").Replace('T', 'U');
+                    return $"{x}{unmanaged}";
+                })
             ];
         }
     }

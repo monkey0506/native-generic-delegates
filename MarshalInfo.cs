@@ -52,6 +52,7 @@ namespace Monkeymoto.NativeGenericDelegates
         (
             INamedTypeSymbol? marshaller,
             InterfaceDescriptor interfaceDescriptor,
+            MethodDescriptor methodDescriptor,
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken
@@ -59,7 +60,7 @@ namespace Monkeymoto.NativeGenericDelegates
         {
             if (marshaller is null)
             {
-                return new(invocationExpression, semanticModel, cancellationToken);
+                return new(methodDescriptor, invocationExpression, semanticModel, cancellationToken);
             }
             var compilation = semanticModel.Compilation;
             var marshallerInterface = compilation.GetTypeByMetadataName(Constants.IMarshallerMetadataName)!;
@@ -115,6 +116,7 @@ namespace Monkeymoto.NativeGenericDelegates
             return new
             (
                 interfaceDescriptor,
+                methodDescriptor,
                 callingConventionOp,
                 marshalMapOp,
                 marshalParamsAsOp,
@@ -162,16 +164,35 @@ namespace Monkeymoto.NativeGenericDelegates
             return null;
         }
 
+        private static CallingConvention GetUnsafeStaticCallingConvention(MethodDescriptor methodDescriptor)
+        {
+            Debug.Assert(methodDescriptor.IsFromUnsafeFunctionPointer);
+            var type = methodDescriptor.FirstParameterType;
+            int start = type.IndexOf('[') + 1;
+            int end = type.IndexOf(']');
+            return type.Substring(start, end - start) switch
+            {
+                "Cdecl" => CallingConvention.Cdecl,
+                "Stdcall" => CallingConvention.StdCall,
+                "Thiscall" => CallingConvention.ThisCall,
+                _ => throw new UnreachableException()
+            };
+        }
+
         private MarshalInfo
         (
+            MethodDescriptor methodDescriptor,
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken
         )
         {
-            var operation =
-                GetCallingConventionOperation(invocationExpression, semanticModel, cancellationToken);
-            StaticCallingConvention = GetStaticCallingConvention(operation);
+            StaticCallingConvention = methodDescriptor.IsFromUnsafeFunctionPointer ?
+                GetUnsafeStaticCallingConvention(methodDescriptor) :
+                GetStaticCallingConvention
+                (
+                    GetCallingConventionOperation(invocationExpression, semanticModel, cancellationToken)
+                );
             hashCode = Hash.Combine
             (
                 MarshallerType,
@@ -184,6 +205,7 @@ namespace Monkeymoto.NativeGenericDelegates
         private MarshalInfo
         (
             InterfaceDescriptor interfaceDescriptor,
+            MethodDescriptor methodDescriptor,
             IFieldReferenceOperation? callingConventionOp,
             IObjectCreationOperation? marshalMapCreation,
             IObjectCreationOperation? marshalParamsAsCreation,
@@ -191,7 +213,9 @@ namespace Monkeymoto.NativeGenericDelegates
             INamedTypeSymbol marshaller
         )
         {
-            StaticCallingConvention = GetStaticCallingConvention(callingConventionOp);
+            StaticCallingConvention = methodDescriptor.IsFromUnsafeFunctionPointer ?
+                GetUnsafeStaticCallingConvention(methodDescriptor) :
+                GetStaticCallingConvention(callingConventionOp);
             MarshallerType = $"typeof({marshaller.ToDisplayString()})";
             MarshalParamsAs =
                 Parser.GetMarshalParamsAs(marshalParamsAsCreation, interfaceDescriptor.InvokeParameterCount);

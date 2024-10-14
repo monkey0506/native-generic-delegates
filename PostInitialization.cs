@@ -4,7 +4,7 @@ namespace Monkeymoto.NativeGenericDelegates
 {
     internal static class PostInitialization
     {
-        private static void BuildInterfaceDefinition(StringBuilder sb, bool isAction, int argumentCount)
+        private static void BuildBaseInterfaceDefinition(StringBuilder sb, bool isAction, int argumentCount)
         {
             string? qualifiedTypeParameters;
             string? returnType;
@@ -105,6 +105,162 @@ $@"    internal interface INative{type}{qualifiedTypeParameters}{antiConstraints
             );
         }
 
+        private static void BuildUnmanagedInterfaceDefinition(StringBuilder sb, bool isAction, int argumentCount)
+        {
+            string? qualifiedTypeParameters;
+            string? category;
+            string? managedTypeParameters;
+            string? unmanagedTypeParameters;
+            string? fullTypeParameterList;
+            string? constraints;
+            bool hasGenericMethods = true;
+            if (isAction)
+            {
+                category = Constants.CategoryAction;
+                constraints = Constants.Actions.UnmanagedConstraints[argumentCount];
+                if (argumentCount != 0)
+                {
+                    qualifiedTypeParameters = Constants.Actions.QualifiedTypeParameters[argumentCount];
+                    managedTypeParameters = Constants.Actions.TypeParameters[argumentCount];
+                    qualifiedTypeParameters =
+                        $"<{qualifiedTypeParameters}, {managedTypeParameters.Replace('T', 'U')}>";
+                }
+                else
+                {
+                    qualifiedTypeParameters = string.Empty;
+                    managedTypeParameters = string.Empty;
+                    hasGenericMethods = false;
+                }
+            }
+            else
+            {
+                category = Constants.CategoryFunc;
+                constraints = Constants.Funcs.UnmanagedConstraints[argumentCount];
+                qualifiedTypeParameters = Constants.Funcs.QualifiedTypeParameters[argumentCount];
+                managedTypeParameters = Constants.Funcs.TypeParameters[argumentCount];
+                qualifiedTypeParameters = $"<{qualifiedTypeParameters}, {managedTypeParameters.Replace('T', 'U')}>";
+            }
+            if (managedTypeParameters.Length != 0)
+            {
+                unmanagedTypeParameters = managedTypeParameters.Replace('T', 'U');
+                fullTypeParameterList = $"<{managedTypeParameters}, {unmanagedTypeParameters}>";
+                managedTypeParameters = $"<{managedTypeParameters}>";
+                var voidReturn = isAction ? ", void" : string.Empty;
+                unmanagedTypeParameters = $"<{unmanagedTypeParameters}{voidReturn}>";
+            }
+            else
+            {
+                fullTypeParameterList = string.Empty;
+                unmanagedTypeParameters = "<void>";
+            }
+            string systemDelegate = $"{category}{managedTypeParameters}";
+            string baseType = $"INative{category}{managedTypeParameters}";
+            string fullType = $"IUnmanaged{category}{fullTypeParameterList}";
+            string systemDelegateArgument = category.ToLower();
+            string callingConvention =
+                $",{Constants.NewLineIndent3}CallingConvention callingConvention = CallingConvention.Winapi";
+            string genericMethods = hasGenericMethods ?
+     $@"
+
+        public new static {fullType} From{category}<TMarshaller>
+        (
+            {systemDelegate} {systemDelegateArgument}{callingConvention}
+        )
+            where TMarshaller : IMarshaller<TMarshaller>, new()
+        {{
+            throw new NotImplementedException();
+        }}
+
+        public new static {fullType} FromFunctionPointer<TMarshaller>
+        (
+            nint functionPtr{callingConvention}
+        )
+            where TMarshaller : IMarshaller<TMarshaller>, new()
+        {{
+            throw new NotImplementedException();
+        }}
+        
+        public static {fullType} FromFunctionPointer<TMarshaller>
+        (
+            delegate* unmanaged[Cdecl]{unmanagedTypeParameters} functionPtr
+        )
+            where TMarshaller : IMarshaller<TMarshaller>, new()
+        {{
+            throw new NotImplementedException();
+        }}
+        
+        public static {fullType} FromFunctionPointer<TMarshaller>
+        (
+            delegate* unmanaged[Stdcall]{unmanagedTypeParameters} functionPtr
+        )
+            where TMarshaller : IMarshaller<TMarshaller>, new()
+        {{
+            throw new NotImplementedException();
+        }}
+        
+        public static {fullType} FromFunctionPointer<TMarshaller>
+        (
+            delegate* unmanaged[Thiscall]{unmanagedTypeParameters} functionPtr
+        )
+            where TMarshaller : IMarshaller<TMarshaller>, new()
+        {{
+            throw new NotImplementedException();
+        }}" :
+                string.Empty;
+            _ = sb.Append
+            (
+$@"#if UNSAFE
+    internal unsafe interface IUnmanaged{category}{qualifiedTypeParameters} : {baseType}{constraints}
+    {{
+        public new static {fullType} From{category}
+        (
+            {systemDelegate} {systemDelegateArgument}{callingConvention}
+        )
+        {{
+            throw new NotImplementedException();
+        }}
+        
+        public new static {fullType} FromFunctionPointer
+        (
+            nint functionPtr{callingConvention}
+        )
+        {{
+            throw new NotImplementedException();
+        }}
+        
+        public static {fullType} FromFunctionPointer
+        (
+            delegate* unmanaged[Cdecl]{unmanagedTypeParameters} functionPtr
+        )
+        {{
+            throw new NotImplementedException();
+        }}
+        
+        public static {fullType} FromFunctionPointer
+        (
+            delegate* unmanaged[Stdcall]{unmanagedTypeParameters} functionPtr
+        )
+        {{
+            throw new NotImplementedException();
+        }}
+        
+        public static {fullType} FromFunctionPointer
+        (
+            delegate* unmanaged[Thiscall]{unmanagedTypeParameters} functionPtr
+        )
+        {{
+            throw new NotImplementedException();
+        }}{genericMethods}
+        
+        public delegate* unmanaged[Cdecl]{unmanagedTypeParameters} AsCdeclPtr {{ get; }}
+        public delegate* unmanaged[Stdcall]{unmanagedTypeParameters} AsStdCallPtr {{ get; }}
+        public delegate* unmanaged[Thiscall]{unmanagedTypeParameters} AsThisCallPtr {{ get; }}
+    }}
+#endif // UNSAFE
+"
+            );
+        }
+
         public static string GetSourceText()
         {
             var source = new StringBuilder
@@ -132,8 +288,10 @@ namespace {Constants.RootNamespace}
             );
             for (int i = 0; i < 17; ++i)
             {
-                BuildInterfaceDefinition(source.AppendLine(), isAction: true, argumentCount: i);
-                BuildInterfaceDefinition(source.AppendLine(), isAction: false, argumentCount: i);
+                BuildBaseInterfaceDefinition(source.AppendLine(), isAction: true, argumentCount: i);
+                BuildBaseInterfaceDefinition(source.AppendLine(), isAction: false, argumentCount: i);
+                BuildUnmanagedInterfaceDefinition(source.AppendLine(), isAction: true, argumentCount: i);
+                BuildUnmanagedInterfaceDefinition(source.AppendLine(), isAction: false, argumentCount: i);
             }
             _ = source.AppendLine
             (

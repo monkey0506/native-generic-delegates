@@ -10,15 +10,18 @@ namespace Monkeymoto.NativeGenericDelegates
         private readonly int hashCode;
 
         public int Arity { get; }
+        public int BaseInterfaceArity { get; }
         public string Category { get; }
         public string FullName { get; }
         public int InvokeParameterCount { get; }
         public bool IsAction { get; }
+        public bool IsUnmanaged { get; }
         public string Name { get; }
         public string ReturnKeyword { get; }
         public string ReturnType { get; }
         public IReadOnlyList<string> TypeArguments { get; }
         public string TypeArgumentList { get; }
+        public string UnmanagedTypeArgumentList { get; }
 
         public static bool operator ==(InterfaceDescriptor? left, InterfaceDescriptor? right) =>
             left?.Equals(right) ?? right is null;
@@ -27,10 +30,32 @@ namespace Monkeymoto.NativeGenericDelegates
         public InterfaceDescriptor(INamedTypeSymbol interfaceSymbol)
         {
             bool isAction = interfaceSymbol.Name.Contains(Constants.CategoryAction);
+            bool isUnmanaged = interfaceSymbol.Name.Contains("Unmanaged");
             Arity = interfaceSymbol.Arity;
-            InvokeParameterCount = Arity - (isAction ? 0 : 1);
-            Name = interfaceSymbol.Name;
             TypeArguments = [.. interfaceSymbol.TypeArguments.Select(static x => x.ToDisplayString())];
+            if (isUnmanaged)
+            {
+                BaseInterfaceArity = Arity / 2;
+                IsUnmanaged = true;
+                if (Arity == 0)
+                {
+                    UnmanagedTypeArgumentList = "<void>";
+                }
+                else
+                {
+                    var unmanagedTypeArguments = TypeArguments.Skip(BaseInterfaceArity);
+                    var voidReturn = isAction ? ", void" : string.Empty;
+                    UnmanagedTypeArgumentList = $"<{string.Join(", ", unmanagedTypeArguments)}{voidReturn}>";
+                }
+            }
+            else
+            {
+                BaseInterfaceArity = Arity;
+                IsUnmanaged = false;
+                UnmanagedTypeArgumentList = string.Empty;
+            }
+            InvokeParameterCount = BaseInterfaceArity - (isAction ? 0 : 1);
+            Name = interfaceSymbol.Name;
             if (isAction)
             {
                 Category = Constants.CategoryAction;

@@ -15,6 +15,7 @@ namespace Monkeymoto.NativeGenericDelegates
         public string FullName { get; }
         public string InterceptorParameters { get; }
         public bool IsFromFunctionPointer { get; }
+        public bool IsFromUnsafeFunctionPointer { get; }
         public string Name { get; }
         public string Parameters { get; }
 
@@ -38,12 +39,19 @@ namespace Monkeymoto.NativeGenericDelegates
             IMethodSymbol methodSymbol
         )
         {
-            bool isFromFunctionPointer = methodSymbol.Name == Constants.FromFunctionPointerIdentifier;
-            if (isFromFunctionPointer)
+            if (methodSymbol.Parameters.FirstOrDefault()?.Type is IFunctionPointerTypeSymbol functionPtrSymbol)
+            {
+                FirstParameterName = "functionPtr";
+                FirstParameterType = functionPtrSymbol.ToDisplayString();
+                IsFromFunctionPointer = true;
+                IsFromUnsafeFunctionPointer = true;
+            }
+            else if (methodSymbol.Name == Constants.FromFunctionPointerIdentifier)
             {
                 FirstParameterName = "functionPtr";
                 FirstParameterType = "nint";
                 IsFromFunctionPointer = true;
+                IsFromUnsafeFunctionPointer = false;
             }
             else
             {
@@ -51,6 +59,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 FirstParameterName = category.ToLower();
                 FirstParameterType = $"{category}{containingInterface.TypeArgumentList}";
                 IsFromFunctionPointer = false;
+                IsFromUnsafeFunctionPointer = false;
             }
             Arity = methodSymbol.Arity;
             ContainingInterface = containingInterface;
@@ -69,6 +78,10 @@ namespace Monkeymoto.NativeGenericDelegates
 
         private string GetParameters(bool getInterceptorParameters)
         {
+            if (IsFromUnsafeFunctionPointer)
+            {
+                return $"{FirstParameterType} {FirstParameterName}";
+            }
             var callingConvention = $"CallingConvention callingConvention";
             var firstParamType = FirstParameterType;
             if (getInterceptorParameters && !IsFromFunctionPointer && (ContainingInterface.Arity > 0))

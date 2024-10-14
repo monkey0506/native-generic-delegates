@@ -46,27 +46,34 @@ namespace Monkeymoto.NativeGenericDelegates
                 _ = sb.Append(reference.Location.AttributeSourceText).Append($"{Constants.NewLineIndent2}");
             }
             var method = InterceptsMethod;
-            var typeParameters = Constants.InterceptorTypeParameters[method.ContainingInterface.Arity];
+            var typeParameters = method.ContainingInterface.IsUnmanaged ?
+                Constants.InterceptorUnmanagedTypeParameters[method.ContainingInterface.BaseInterfaceArity] :
+                Constants.InterceptorTypeParameters[method.ContainingInterface.Arity];
             typeParameters = method.Arity != 0 ?
                 $"<{typeParameters}, XMarshaller>" :
                 typeParameters.Length != 0 ?
                     $"<{typeParameters}>" :
                     typeParameters;
+            var constraints = method.ContainingInterface.IsUnmanaged ?
+                Constants.InterceptorUnmanagedTypeConstraints[method.ContainingInterface.BaseInterfaceArity] :
+                Constants.InterceptorTypeConstraints[method.ContainingInterface.Arity];
+            var unsafeKeyword = method.IsFromUnsafeFunctionPointer ? "unsafe " : string.Empty;
             _ = sb.Append
             (
      $@"[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static {method.ContainingInterface.FullName} {method.Name}{typeParameters}
+        public static {unsafeKeyword}{method.ContainingInterface.FullName} {method.Name}{typeParameters}
         (
             {method.Parameters}
-        ){Constants.InterceptorAntiConstraints[method.ContainingInterface.Arity]}
+        ){constraints}
         {{"
             );
             if (ImplementationClass.MarshalInfo.StaticCallingConvention is not null)
             {
+                var cast = method.IsFromUnsafeFunctionPointer ? "(nint)" : string.Empty;
                 _ = sb.Append
                 (
      $@"
-            return new {ImplementationClass.ClassName}({method.FirstParameterName});
+            return new {ImplementationClass.ClassName}({cast}{method.FirstParameterName});
         }}"
                 );
             }
