@@ -72,6 +72,7 @@ namespace Monkeymoto.NativeGenericDelegates
             (
 $@"    internal interface INative{type}{qualifiedTypeParameters}{antiConstraints}
     {{
+        public CallingConvention CallingConvention {{ get; }}
         protected object? Target {{ get; }}
         protected MethodInfo Method {{ get; }}
         

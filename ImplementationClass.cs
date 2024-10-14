@@ -193,6 +193,8 @@ $@"
         private readonly Handler handler;
         private readonly nint functionPtr;
         
+        public CallingConvention CallingConvention => CallingConvention.{callingConvention};
+        
         [UnmanagedFunctionPointer(CallingConvention.{callingConvention})]
         {returnMarshalAsAttribute}public delegate {returnType} Handler{invokeParameters};{unmanagedProperties}
         
