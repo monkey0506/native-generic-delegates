@@ -14,6 +14,7 @@ namespace Monkeymoto.NativeGenericDelegates
     {
         private readonly int hashCode;
 
+        public string? MarshallerType { get; }
         public IReadOnlyList<string?>? MarshalParamsAs { get; }
         public string? MarshalReturnAs { get; }
         public CallingConvention? StaticCallingConvention { get; }
@@ -117,7 +118,8 @@ namespace Monkeymoto.NativeGenericDelegates
                 callingConventionOp,
                 marshalMapOp,
                 marshalParamsAsOp,
-                marshalReturnAsOp
+                marshalReturnAsOp,
+                marshaller
             );
         }
 
@@ -172,6 +174,7 @@ namespace Monkeymoto.NativeGenericDelegates
             StaticCallingConvention = GetStaticCallingConvention(operation);
             hashCode = Hash.Combine
             (
+                MarshallerType,
                 MarshalParamsAs,
                 MarshalReturnAs,
                 StaticCallingConvention
@@ -184,10 +187,12 @@ namespace Monkeymoto.NativeGenericDelegates
             IFieldReferenceOperation? callingConventionOp,
             IObjectCreationOperation? marshalMapCreation,
             IObjectCreationOperation? marshalParamsAsCreation,
-            IObjectCreationOperation? marshalReturnAsCreation
+            IObjectCreationOperation? marshalReturnAsCreation,
+            INamedTypeSymbol marshaller
         )
         {
             StaticCallingConvention = GetStaticCallingConvention(callingConventionOp);
+            MarshallerType = $"typeof({marshaller.ToDisplayString()})";
             MarshalParamsAs =
                 Parser.GetMarshalParamsAs(marshalParamsAsCreation, interfaceDescriptor.InvokeParameterCount);
             MarshalReturnAs = Parser.GetMarshalReturnAs(marshalReturnAsCreation);
@@ -225,6 +230,7 @@ namespace Monkeymoto.NativeGenericDelegates
             }
             hashCode = Hash.Combine
             (
+                MarshallerType,
                 MarshalParamsAs,
                 MarshalReturnAs,
                 StaticCallingConvention
@@ -233,7 +239,7 @@ namespace Monkeymoto.NativeGenericDelegates
 
         public override bool Equals(object? obj) => obj is MarshalInfo other && Equals(other);
         public bool Equals(MarshalInfo? other) =>
-            (other is not null) &&
+            (other is not null) && (MarshallerType == other.MarshallerType) &&
             (MarshalParamsAs?.SequenceEqual(other.MarshalParamsAs) ?? other.MarshalParamsAs is null) &&
             (MarshalReturnAs == other.MarshalReturnAs) && (StaticCallingConvention == other.StaticCallingConvention);
         public override int GetHashCode() => hashCode;
