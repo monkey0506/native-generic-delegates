@@ -76,9 +76,21 @@ namespace Monkeymoto.NativeGenericDelegates
                 {
                     var method = kv.Value[i].Method;
                     var typeArguments = method.ContainingInterface.TypeArguments;
+                    var marshallerType = kv.Value[i].MarshalInfo.MarshallerType;
                     if (typeArguments.Count == 1)
                     {
-                        _ = sb.Append($"            if (typeof(X) == typeof({typeArguments[0]}))");
+                        if (marshallerType is null)
+                        {
+                            _ = sb.Append($"            if (typeof(X) == typeof({typeArguments[0]}))");
+                        }
+                        else
+                        {
+                            _ = sb.Append
+                            (
+                                $"            if ((typeof(X) == typeof({typeArguments[0]
+                                    })) && (typeof(XMarshaller) == {marshallerType}))"
+                            );
+                        }
                     }
                     else
                     {
@@ -89,6 +101,10 @@ namespace Monkeymoto.NativeGenericDelegates
                             if (k != typeArguments.Count)
                             {
                                 _ = sb.AppendLine(" &&");
+                            }
+                            else if (marshallerType is not null)
+                            {
+                                _ = sb.AppendLine($" &&{Constants.NewLineIndent4}(typeof(XMarshaller) == {marshallerType})");
                             }
                         }
                         _ = sb.Append("            )");

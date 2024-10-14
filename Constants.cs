@@ -137,6 +137,7 @@ namespace Monkeymoto.NativeGenericDelegates
         public const string NewLineIndent1 = $"{NewLine}    ";
         public const string NewLineIndent2 = $"{NewLineIndent1}    ";
         public const string NewLineIndent3 = $"{NewLineIndent2}    ";
+        public const string NewLineIndent4 = $"{NewLineIndent3}    ";
         public const string SourceFileName = RootNamespace + ".g.cs";
 
         public static readonly string[] Parameters =
