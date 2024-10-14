@@ -47,6 +47,7 @@ namespace Monkeymoto.NativeGenericDelegates
                             x.Key.MethodReference.IsInterfaceOrMethodOpenGeneric,
                             x.Key.MethodReference.MarshalInfo,
                             x.Key.MethodReference.InvocationArgumentCount,
+                            x.Key.MethodReference.Location,
                             x.Value.AsReadOnly()
                         )
                     )

@@ -14,13 +14,10 @@ namespace Monkeymoto.NativeGenericDelegates
     {
         private readonly int hashCode;
 
-        public int Character { get; }
-        public string FilePath { get; }
-        public string InterceptorAttributeSourceText { get; }
         public InterfaceDescriptor Interface { get; }
         public int InvocationArgumentCount { get; }
         public bool IsInterfaceOrMethodOpenGeneric { get; }
-        public int Line { get; }
+        public InterceptedLocation Location { get; }
         public MarshalInfo MarshalInfo { get; }
         public MethodDescriptor Method { get; }
 
@@ -50,6 +47,7 @@ namespace Monkeymoto.NativeGenericDelegates
             }
             var methodSymbol = invocation.TargetMethod;
             var marshallers = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+            var isOpenGenericMethod = false;
             if (methodSymbol.IsGenericMethod)
             {
                 if (methodSymbol.TypeArguments.First() is INamedTypeSymbol namedMarshaller)
@@ -58,6 +56,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 }
                 else
                 {
+                    isOpenGenericMethod = true;
                     foreach
                     (
                         var marshaller in getGenericMethodReferences(methodSymbol, invocationExpression)
@@ -91,7 +90,7 @@ namespace Monkeymoto.NativeGenericDelegates
                     methodDescriptor,
                     invocationExpression,
                     marshalInfo,
-                    !interfaceReference.IsSyntaxReferenceClosedTypeOrMethod,
+                    !interfaceReference.IsSyntaxReferenceClosedTypeOrMethod || isOpenGenericMethod,
                     invocationArgumentCount
                 );
             }
@@ -120,23 +119,19 @@ namespace Monkeymoto.NativeGenericDelegates
             int invocationArgumentCount
         )
         {
-            var methodNode = ((MemberAccessExpressionSyntax)invocationExpression.Expression).Name;
-            var linePosition = methodNode.GetLocation().GetLineSpan().Span.Start;
-            Character = linePosition.Character + 1;
-            FilePath = invocationExpression.SyntaxTree.FilePath;
             Interface = interfaceDescriptor;
+            InvocationArgumentCount = invocationArgumentCount;
             IsInterfaceOrMethodOpenGeneric = isInterfaceOrMethodOpenGeneric;
-            Line = linePosition.Line + 1;
+            Location = new InterceptedLocation(invocationExpression);
             MarshalInfo = marshalInfo;
             Method = methodDescriptor;
-            InterceptorAttributeSourceText = $"[InterceptsLocation(@\"{FilePath}\", {Line}, {Character})]";
-            InvocationArgumentCount = invocationArgumentCount;
-            hashCode = Hash.Combine(Character, FilePath, Line);
+            hashCode = Hash.Combine(Location, Method, InvocationArgumentCount, MarshalInfo);
         }
 
         public override bool Equals(object? obj) => obj is MethodReference other && Equals(other);
-        public bool Equals(MethodReference? other) => (other is not null) && (Character == other.Character) &&
-             (FilePath == other.FilePath) && (Line == other.Line);
+        public bool Equals(MethodReference? other) => (other is not null) && (Location == other.Location) &&
+            (Method == other.Method) && (InvocationArgumentCount == other.InvocationArgumentCount) &&
+            (MarshalInfo == other.MarshalInfo);
         public override int GetHashCode() => hashCode;
     }
 }
