@@ -18,15 +18,19 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Monkeymoto.GeneratorUtils.GenericSymbolReferenceTree" Version="2.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <GeneratePathProperty>true</GeneratePathProperty>
+    </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\GenericSymbolReferenceTree\Monkeymoto.GeneratorUtils.GenericSymbolReferenceTree.csproj" />
-  </ItemGroup>
+  <PropertyGroup>
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+  </PropertyGroup>
 
   <Target Name="GetDependencyTargetPaths">
     <ItemGroup>
-      <TargetPathWithTargetPlatformMoniker Include="..\GenericSymbolReferenceTree\bin\Debug\netstandard2.0\Monkeymoto.GeneratorUtils.GenericSymbolReferenceTree.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGMonkeymoto_GeneratorUtils_GenericSymbolReferenceTree)\lib\netstandard2.0\Monkeymoto.GeneratorUtils.GenericSymbolReferenceTree.dll" IncludeRuntimeDependency="false" />
     </ItemGroup>
   </Target>
 
