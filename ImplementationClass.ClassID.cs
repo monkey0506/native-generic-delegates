@@ -4,10 +4,16 @@ namespace Monkeymoto.NativeGenericDelegates
 {
     internal sealed partial class ImplementationClass
     {
-        public readonly struct ClassID(MethodDescriptor method, int invocationArgumentCount, MarshalInfo marshalInfo) :
-            IEquatable<ClassID>
+        public readonly struct ClassID
+        (
+            MethodDescriptor method,
+            int invocationArgumentCount,
+            MarshalInfo marshalInfo,
+            bool isInterceptorClosed
+        ) : IEquatable<ClassID>
         {
-            private readonly int hashCode = Hash.Combine(method, invocationArgumentCount, marshalInfo);
+            private readonly int hashCode =
+                Hash.Combine(method, invocationArgumentCount, marshalInfo, isInterceptorClosed);
 
             public static bool operator ==(ClassID left, ClassID right) => left.Equals(right);
             public static bool operator !=(ClassID left, ClassID right) => !(left == right);

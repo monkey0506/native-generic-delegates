@@ -30,7 +30,7 @@ namespace Monkeymoto.NativeGenericDelegates
         )
         {
             var category = method.ContainingInterface.Category;
-            ID = new(method, invocationArgumentCount, marshalInfo);
+            ID = new(method, invocationArgumentCount, marshalInfo, !isInterfaceOrMethodOpenGeneric);
             ClassName = $"Native{category}_{ID}";
             MarshalInfo = marshalInfo;
             Method = method;
