@@ -10,14 +10,16 @@ namespace Monkeymoto.NativeGenericDelegates
 
         public int Arity { get; }
         public InterfaceDescriptor ContainingInterface { get; }
+        public string FirstArgument { get; }
         public string FirstParameterName { get; }
         public string FirstParameterType { get; }
         public string FullName { get; }
-        public string InterceptorParameters { get; }
+        public InterceptorDescriptor Interceptor { get; }
         public bool IsFromFunctionPointer { get; }
         public bool IsFromUnsafeFunctionPointer { get; }
         public string Name { get; }
         public string Parameters { get; }
+        public string UnsafeKeywordSourceText { get; }
 
         public static bool operator ==(MethodDescriptor? left, MethodDescriptor? right) =>
             left?.Equals(right) ?? right is null;
@@ -42,6 +44,7 @@ namespace Monkeymoto.NativeGenericDelegates
             if (methodSymbol.Parameters.FirstOrDefault()?.Type is IFunctionPointerTypeSymbol functionPtrSymbol)
             {
                 FirstParameterName = "functionPtr";
+                FirstArgument = $"(nint){FirstParameterName}";
                 FirstParameterType = functionPtrSymbol.ToDisplayString();
                 IsFromFunctionPointer = true;
                 IsFromUnsafeFunctionPointer = true;
@@ -49,6 +52,7 @@ namespace Monkeymoto.NativeGenericDelegates
             else if (methodSymbol.Name == Constants.FromFunctionPointerIdentifier)
             {
                 FirstParameterName = "functionPtr";
+                FirstArgument = FirstParameterName;
                 FirstParameterType = "nint";
                 IsFromFunctionPointer = true;
                 IsFromUnsafeFunctionPointer = false;
@@ -57,16 +61,18 @@ namespace Monkeymoto.NativeGenericDelegates
             {
                 var category = containingInterface.Category;
                 FirstParameterName = category.ToLower();
-                FirstParameterType = $"{category}{containingInterface.TypeArgumentList}";
+                FirstArgument = FirstParameterName;
+                FirstParameterType = $"{category}{containingInterface.BaseInterface.TypeArgumentList}";
                 IsFromFunctionPointer = false;
                 IsFromUnsafeFunctionPointer = false;
             }
             Arity = methodSymbol.Arity;
             ContainingInterface = containingInterface;
             FullName = GetFullName(methodSymbol);
-            InterceptorParameters = GetParameters(getInterceptorParameters: true);
             Name = methodSymbol.Name;
             Parameters = GetParameters(getInterceptorParameters: false);
+            UnsafeKeywordSourceText = IsFromUnsafeFunctionPointer ? "unsafe " : string.Empty;
+            Interceptor = new InterceptorDescriptor(this, GetParameters(getInterceptorParameters: true));
             hashCode = Hash.Combine(Arity, ContainingInterface, FullName);
         }
 
@@ -82,15 +88,14 @@ namespace Monkeymoto.NativeGenericDelegates
             {
                 return $"{FirstParameterType} {FirstParameterName}";
             }
-            var callingConvention = $"CallingConvention callingConvention";
             var firstParamType = FirstParameterType;
             if (getInterceptorParameters && !IsFromFunctionPointer && (ContainingInterface.Arity > 0))
             {
                 var typeParameters = Constants.InterceptorTypeParameters[ContainingInterface.Arity];
                 firstParamType = $"{ContainingInterface.Category}<{typeParameters}>";
             }
-            var firstParam = $"{firstParamType} {FirstParameterName}, ";
-            return $"{firstParam}{callingConvention}";
+            return $"{firstParamType} {FirstParameterName},{Constants.NewLineIndent3}CallingConvention " +
+                "callingConvention";
         }
     }
 }

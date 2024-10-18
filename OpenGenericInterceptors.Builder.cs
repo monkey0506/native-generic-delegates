@@ -14,18 +14,18 @@ namespace Monkeymoto.NativeGenericDelegates
             public void Add
             (
                 ImplementationClass implementationClass,
-                InterceptedLocation location,
+                ImplementationClass.Key classKey,
                 IReadOnlyList<MethodReference> methodReferences
             )
             {
                 var attributesHashSet = attributes.GetOrCreate
                 (
-                    new Key(location),
+                    new Key(classKey),
                     ImmutableHashSet.CreateBuilder<string>
                 );
                 var implementationClassesList = implementationClasses.GetOrCreate
                 (
-                    new Key(location),
+                    new Key(classKey),
                     ImmutableList.CreateBuilder<ImplementationClass>
                 );
                 attributesHashSet!.UnionWith(methodReferences.Select(static x => x.Location.AttributeSourceText));

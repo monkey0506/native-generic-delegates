@@ -2,25 +2,18 @@
 
 namespace Monkeymoto.NativeGenericDelegates
 {
-    internal sealed partial class ImplementationClassCollection
+    internal sealed partial class ImplementationClass
     {
-        private readonly struct Key : IEquatable<Key>
+        public readonly struct Key(MethodReference methodReference) : IEquatable<Key>
         {
-            private readonly int hashCode;
+            private readonly int hashCode = methodReference.GetHashCode();
 
-            public readonly MethodReference MethodReference;
+            public readonly MethodReference MethodReference = methodReference;
 
             public static bool operator ==(Key left, Key right) => left.Equals(right);
             public static bool operator !=(Key left, Key right) => !(left == right);
 
             public static implicit operator Key(MethodReference methodReference) => new(methodReference);
-            public static implicit operator MethodReference(Key key) => key.MethodReference;
-
-            public Key(MethodReference methodReference)
-            {
-                MethodReference = methodReference;
-                hashCode = MethodReference.GetHashCode();
-            }
 
             public override bool Equals(object? obj) => obj is Key other && Equals(other);
             public bool Equals(Key other) => MethodReference == other.MethodReference;

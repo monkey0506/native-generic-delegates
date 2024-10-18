@@ -47,8 +47,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 {
                     ILiteralOperation => x,
                     IObjectCreationOperation => x,
-                    IConversionOperation conversion =>
-                        conversion.Operand as IObjectCreationOperation,
+                    IConversionOperation conversion => conversion.Operand as IObjectCreationOperation,
                     _ => null
                 }).Where(static x => x is not null);
                 return GetMarshalAsCollectionFromElements(elements, collectionLength);
@@ -97,10 +96,8 @@ namespace Monkeymoto.NativeGenericDelegates
                 {
                     _ = sb.Append(objectCreation.Initializer.Syntax.ToString())
                         .Replace('{', ',')
-                        .Replace("}", string.Empty);
-                    int i = sb.Length - 1;
-                    for ( ; (i >= 0) && char.IsWhiteSpace(sb[i]); --i) { }
-                    sb.Length = i + 1;
+                        .Replace("}", string.Empty)
+                        .TrimEnd();
                 }
                 return sb.ToString();
             }

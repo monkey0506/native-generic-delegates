@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -11,8 +10,8 @@ namespace Monkeymoto.NativeGenericDelegates
     {
         private readonly int hashCode;
 
-        public ClassID ID { get; }
         public string ClassName { get; }
+        public ClassID ID { get; }
         public ClosedGenericInterceptor? Interceptor { get; }
         public MarshalInfo MarshalInfo { get; }
         public MethodDescriptor Method { get; }
@@ -21,26 +20,22 @@ namespace Monkeymoto.NativeGenericDelegates
         public ImplementationClass
         (
             OpenGenericInterceptors.Builder openGenericInterceptorsBuilder,
-            MethodDescriptor method,
-            bool isInterfaceOrMethodOpenGeneric,
-            MarshalInfo marshalInfo,
-            int invocationArgumentCount,
-            InterceptedLocation location,
+            Key key,
             IReadOnlyList<MethodReference> methodReferences
         )
         {
-            var category = method.ContainingInterface.Category;
-            ID = new(method, invocationArgumentCount, marshalInfo, !isInterfaceOrMethodOpenGeneric);
-            ClassName = $"Native{category}_{ID}";
-            MarshalInfo = marshalInfo;
-            Method = method;
-            if (!isInterfaceOrMethodOpenGeneric)
+            var isInterceptorClosed = !key.MethodReference.IsInterfaceOrMethodOpenGeneric;
+            MarshalInfo = key.MethodReference.MarshalInfo;
+            Method = key.MethodReference.Method;
+            ID = new ClassID(Method, key.MethodReference.InvocationArgumentCount, MarshalInfo, isInterceptorClosed);
+            ClassName = $"Native{Method.ContainingInterface.Category}_{ID}";
+            if (!key.MethodReference.IsInterfaceOrMethodOpenGeneric)
             {
-                Interceptor = new ClosedGenericInterceptor(method, this, methodReferences);
+                Interceptor = new ClosedGenericInterceptor(this, Method, methodReferences);
             }
             else
             {
-                openGenericInterceptorsBuilder.Add(this, location, methodReferences);
+                openGenericInterceptorsBuilder.Add(this, key, methodReferences);
             }
             SourceText = GetSourceText();
             hashCode = SourceText.GetHashCode();
@@ -139,12 +134,8 @@ namespace Monkeymoto.NativeGenericDelegates
             string? unmanagedProperties;
             if (Method.ContainingInterface.IsUnmanaged)
             {
-                var typeArguments = Method.ContainingInterface.TypeArguments;
-                var baseTypeArguments = typeArguments.Take(typeArguments.Count / 2);
-                var baseTypeArgumentList = $"<{string.Join(", ", baseTypeArguments)}>";
-                baseInterfaceFullName =
-                    $"{Method.ContainingInterface.Name.Replace("Unmanaged", "Native")}{baseTypeArgumentList}";
-                var unmanagedTypeArgumentList = Method.ContainingInterface.UnmanagedTypeArgumentList;
+                baseInterfaceFullName = Method.ContainingInterface.BaseInterface.FullName;
+                var unmanagedTypeArgumentList = Method.ContainingInterface.FunctionPointerTypeArgumentList;
                 unmanagedProperties =
 $@"
         
@@ -152,19 +143,34 @@ $@"
         public unsafe delegate* unmanaged[Cdecl]{unmanagedTypeArgumentList} AsCdeclPtr
         {{
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => {GetPointerSourceText(callingConvention, CallingConvention.Cdecl, unmanagedTypeArgumentList)};
+            get => {GetPointerPropertySourceText
+            (
+                callingConvention,
+                CallingConvention.Cdecl,
+                unmanagedTypeArgumentList
+            )};
         }}
         
         public unsafe delegate* unmanaged[Stdcall]{unmanagedTypeArgumentList} AsStdCallPtr
         {{
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => {GetPointerSourceText(callingConvention, CallingConvention.StdCall, unmanagedTypeArgumentList)};
+            get => {GetPointerPropertySourceText
+            (
+                callingConvention,
+                CallingConvention.StdCall,
+                unmanagedTypeArgumentList
+            )};
         }}
         
         public unsafe delegate* unmanaged[Thiscall]{unmanagedTypeArgumentList} AsThisCallPtr
         {{
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => {GetPointerSourceText(callingConvention, CallingConvention.ThisCall, unmanagedTypeArgumentList)};
+            get => {GetPointerPropertySourceText
+            (
+                callingConvention,
+                CallingConvention.ThisCall,
+                unmanagedTypeArgumentList
+            )};
         }}
 #endif // UNSAFE";
             }
@@ -178,7 +184,7 @@ $@"
             var returnMarshalAsAttribute = MarshalInfo.MarshalReturnAs is not null ?
                 $"[return: MarshalAs({MarshalInfo.MarshalReturnAs})]{Constants.NewLineIndent2}" :
                 string.Empty;
-            var returnKeyword = Method.ContainingInterface.ReturnKeyword;
+            var returnKeyword = Method.ContainingInterface.ReturnKeywordSourceText;
             var returnType = Method.ContainingInterface.ReturnType;
             var interceptor = MarshalInfo.StaticCallingConvention is not null ?
                 Interceptor?.SourceText ?? string.Empty :
@@ -215,7 +221,7 @@ $@"
     ";
         }
 
-        private static string GetPointerSourceText
+        private static string GetPointerPropertySourceText
         (
             CallingConvention actual,
             CallingConvention expected,
@@ -229,12 +235,12 @@ $@"
                     CallingConvention.Cdecl =>
                         $"NativeGenericDelegates.PlatformDefaultCallingConvention == CallingConvention.Cdecl ?" +
                             Constants.NewLineIndent4 +
-                            GetPointerSourceText(CallingConvention.Cdecl, expected, typeArgumentList) +
+                            GetPointerPropertySourceText(CallingConvention.Cdecl, expected, typeArgumentList) +
                             $" : {Constants.NewLineIndent4}null",
                     CallingConvention.StdCall =>
                         $"NativeGenericDelegates.PlatformDefaultCallingConvention == CallingConvention.StdCall ?" +
                         Constants.NewLineIndent4 +
-                        GetPointerSourceText(CallingConvention.StdCall, expected, typeArgumentList) +
+                        GetPointerPropertySourceText(CallingConvention.StdCall, expected, typeArgumentList) +
                         $" : {Constants.NewLineIndent4}null",
                     _ => "null",
                 };

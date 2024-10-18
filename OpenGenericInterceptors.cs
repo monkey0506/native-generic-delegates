@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -43,25 +42,15 @@ namespace Monkeymoto.NativeGenericDelegates
             foreach (var kv in implementationClasses)
             {
                 Debug.Assert(attributes.ContainsKey(kv.Key));
-                var first = kv.Value.First();
-                var firstInterface = first.Method.ContainingInterface;
-                var typeParameters = firstInterface.IsUnmanaged ?
-                    Constants.InterceptorUnmanagedTypeParameters[firstInterface.BaseInterfaceArity] :
-                    Constants.InterceptorTypeParameters[firstInterface.Arity];
-                var interfaceName = $"{firstInterface.Name}<{typeParameters}>";
-                typeParameters = first.Method.Arity != 0 ?
-                    $"<{typeParameters}, XMarshaller>" :
-                    typeParameters.Length != 0 ?
-                        $"<{typeParameters}>" :
-                        typeParameters;
+                var keyMethod = kv.Key.Method;
+                var constraints = keyMethod.Interceptor.Constraints;
+                var interfaceName = keyMethod.Interceptor.InterfaceFullName;
                 var methodHash = kv.Key.GetHashCode();
-                var methodName = first.Method.Name;
-                var parameters = first.Method.InterceptorParameters;
-                var constraints = firstInterface.IsUnmanaged ?
-                    Constants.InterceptorUnmanagedTypeConstraints[firstInterface.BaseInterfaceArity] :
-                    Constants.InterceptorTypeConstraints[firstInterface.Arity];
-                var unsafeKeyword = first.Method.IsFromUnsafeFunctionPointer ? "unsafe " : string.Empty;
-                _ = sb.AppendLine().Append("    ").AppendLine
+                var methodName = keyMethod.Name;
+                var parameters = keyMethod.Interceptor.Parameters;
+                var typeParameters = keyMethod.Interceptor.TypeParameters;
+                var unsafeKeyword = keyMethod.UnsafeKeywordSourceText;
+                _ = sb.Append(Constants.NewLineIndent1).AppendLine
                 (
  $@"file static {unsafeKeyword}class NativeGenericDelegates_{(methodHash < 0 ? $"S{-methodHash}" : $"U{methodHash}")}
     {{"
@@ -81,9 +70,11 @@ namespace Monkeymoto.NativeGenericDelegates
                 );
                 for (int i = 0; i < kv.Value.Count; ++i)
                 {
-                    var method = kv.Value[i].Method;
-                    var typeArguments = method.ContainingInterface.TypeArguments;
-                    var marshallerType = kv.Value[i].MarshalInfo.MarshallerType;
+                    var value = kv.Value[i];
+                    var method = value.Method;
+                    var containingInterface = method.ContainingInterface;
+                    var marshallerType = value.MarshalInfo.MarshallerType;
+                    var typeArguments = containingInterface.TypeArguments;
                     if (typeArguments.Count == 1)
                     {
                         if (marshallerType is null)
@@ -94,8 +85,8 @@ namespace Monkeymoto.NativeGenericDelegates
                         {
                             _ = sb.Append
                             (
-                                $"            if ((typeof(X) == typeof({typeArguments[0]
-                                    })) && (typeof(XMarshaller) == {marshallerType}))"
+                                $"            if ((typeof(X) == typeof({typeArguments[0]})) && (typeof(XMarshaller) " +
+                                    $"== {marshallerType}))"
                             );
                         }
                     }
@@ -104,8 +95,8 @@ namespace Monkeymoto.NativeGenericDelegates
                         _ = sb.Append($"            if{Constants.NewLineIndent3}({Constants.NewLine}");
                         for (int j = 0, k = 1; j < typeArguments.Count; ++j, ++k)
                         {
-                            var typeArg = method.ContainingInterface.IsUnmanaged ?
-                                k <= method.ContainingInterface.BaseInterfaceArity ?
+                            var typeArg = containingInterface.IsUnmanaged ?
+                                k <= containingInterface.BaseInterface.Arity ?
                                     $"XT{(typeArguments.Count != 2 ? k.ToString() : string.Empty)}" :
                                     $"XU{(typeArguments.Count != 2 ? (k / 2).ToString() : string.Empty)}" :
                                 $"X{k}";
@@ -116,43 +107,46 @@ namespace Monkeymoto.NativeGenericDelegates
                             }
                             else if (marshallerType is not null)
                             {
-                                _ = sb.AppendLine($" &&{Constants.NewLineIndent4}(typeof(XMarshaller) == {marshallerType})");
+                                _ = sb.AppendLine
+                                (
+                                    $" &&{Constants.NewLineIndent4}(typeof(XMarshaller) == {marshallerType})"
+                                );
                             }
                         }
                         _ = sb.Append($"{Constants.NewLineIndent3})");
                     }
                     _ = sb.Append(Constants.NewLineIndent3);
-                    var firstParam = method.FirstParameterName;
+                    var firstArg = method.FirstArgument;
                     if (!method.IsFromFunctionPointer)
                     {
-                        firstParam = $"({method.ContainingInterface.Category}{method.ContainingInterface.TypeArgumentList})(object){firstParam}";
+                        firstArg = $"({containingInterface.Category}" +
+                            $"{containingInterface.TypeArgumentList})(object){firstArg}";
                     }
-                    if (kv.Value[i].MarshalInfo.StaticCallingConvention is not null)
+                    if (value.MarshalInfo.StaticCallingConvention is not null)
                     {
-                        var cast = method.IsFromUnsafeFunctionPointer ? "(nint)" : string.Empty;
                         _ = sb.AppendLine
                         (
          $@"{{
-                return ({interfaceName})(object)(new {kv.Value[i].ClassName}({cast}{firstParam}));
+                return ({interfaceName})(object)(new {value.ClassName}({firstArg}));
             }}"
                         );
                     }
                     else
                     {
-                        var className = kv.Value[i].ClassName;
+                        var className = value.ClassName;
                         _ = sb.AppendLine
                         (
          $@"{{
                 return callingConvention switch
                 {{
                     CallingConvention.Cdecl =>
-                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.Cdecl)}({firstParam})),
+                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.Cdecl)}({firstArg})),
                     CallingConvention.StdCall =>
-                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.StdCall)}({firstParam})),
+                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.StdCall)}({firstArg})),
                     CallingConvention.ThisCall =>
-                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.ThisCall)}({firstParam})),
+                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.ThisCall)}({firstArg})),
                     CallingConvention.Winapi =>
-                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.Winapi)}({firstParam})),
+                        ({interfaceName})(object)(new {className}_{nameof(CallingConvention.Winapi)}({firstArg})),
                     _ => throw new NotImplementedException()
                 }};
             }}"
@@ -162,7 +156,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 _ = sb.Append
                 (
                     $"            throw new NotImplementedException();{Constants.NewLineIndent2}}}" +
-                    $"{Constants.NewLineIndent1}}}{Constants.NewLine}"
+                        $"{Constants.NewLineIndent1}}}{Constants.NewLine}"
                 );
             }
             return sb.ToString();

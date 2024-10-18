@@ -26,7 +26,7 @@ namespace Monkeymoto.NativeGenericDelegates
             IncrementalValueProvider<MethodReferenceCollection> methodReferencesProvider
         ) => methodReferencesProvider.Select((methodReferences, cancellationToken) =>
         {
-            var dictionary = new Dictionary<Key, List<MethodReference>>();
+            var dictionary = new Dictionary<ImplementationClass.Key, List<MethodReference>>();
             foreach (var methodReference in methodReferences)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -40,16 +40,7 @@ namespace Monkeymoto.NativeGenericDelegates
                 [
                     .. dictionary.Select
                     (
-                        x => new ImplementationClass
-                        (
-                            openGenericInterceptorsBuilder,
-                            x.Key.MethodReference.Method,
-                            x.Key.MethodReference.IsInterfaceOrMethodOpenGeneric,
-                            x.Key.MethodReference.MarshalInfo,
-                            x.Key.MethodReference.InvocationArgumentCount,
-                            x.Key.MethodReference.Location,
-                            x.Value.AsReadOnly()
-                        )
+                        x => new ImplementationClass(openGenericInterceptorsBuilder, x.Key, x.Value.AsReadOnly())
                     )
                 ]
             );

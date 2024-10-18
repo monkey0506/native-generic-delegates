@@ -22,8 +22,8 @@ namespace Monkeymoto.NativeGenericDelegates
 
         public ClosedGenericInterceptor
         (
-            MethodDescriptor interceptsMethod,
             ImplementationClass implementationClass,
+            MethodDescriptor interceptsMethod,
             IReadOnlyList<MethodReference> methodReferences
         )
         {
@@ -40,24 +40,15 @@ namespace Monkeymoto.NativeGenericDelegates
 
         private string GetSourceText()
         {
-            var sb = new StringBuilder($"{Constants.NewLineIndent2}");
+            var sb = new StringBuilder(Constants.NewLineIndent2);
             foreach (var reference in InterceptedMethodReferences)
             {
-                _ = sb.Append(reference.Location.AttributeSourceText).Append($"{Constants.NewLineIndent2}");
+                _ = sb.Append(reference.Location.AttributeSourceText).Append(Constants.NewLineIndent2);
             }
             var method = InterceptsMethod;
-            var typeParameters = method.ContainingInterface.IsUnmanaged ?
-                Constants.InterceptorUnmanagedTypeParameters[method.ContainingInterface.BaseInterfaceArity] :
-                Constants.InterceptorTypeParameters[method.ContainingInterface.Arity];
-            typeParameters = method.Arity != 0 ?
-                $"<{typeParameters}, XMarshaller>" :
-                typeParameters.Length != 0 ?
-                    $"<{typeParameters}>" :
-                    typeParameters;
-            var constraints = method.ContainingInterface.IsUnmanaged ?
-                Constants.InterceptorUnmanagedTypeConstraints[method.ContainingInterface.BaseInterfaceArity] :
-                Constants.InterceptorTypeConstraints[method.ContainingInterface.Arity];
-            var unsafeKeyword = method.IsFromUnsafeFunctionPointer ? "unsafe " : string.Empty;
+            var constraints = method.Interceptor.Constraints;
+            var typeParameters = method.Interceptor.TypeParameters;
+            var unsafeKeyword = method.UnsafeKeywordSourceText;
             _ = sb.Append
             (
      $@"[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -67,13 +58,13 @@ namespace Monkeymoto.NativeGenericDelegates
         ){constraints}
         {{"
             );
+            var firstArg = method.FirstArgument;
             if (ImplementationClass.MarshalInfo.StaticCallingConvention is not null)
             {
-                var cast = method.IsFromUnsafeFunctionPointer ? "(nint)" : string.Empty;
                 _ = sb.Append
                 (
      $@"
-            return new {ImplementationClass.ClassName}({cast}{method.FirstParameterName});
+            return new {ImplementationClass.ClassName}({firstArg});
         }}"
                 );
             }
@@ -84,10 +75,14 @@ namespace Monkeymoto.NativeGenericDelegates
      $@"
             return callingConvention switch
             {{
-                CallingConvention.Cdecl => ({method.ContainingInterface.FullName})new {ImplementationClass.ClassName}_{nameof(CallingConvention.Cdecl)}({method.FirstParameterName}),
-                CallingConvention.StdCall => new {ImplementationClass.ClassName}_{nameof(CallingConvention.StdCall)}({method.FirstParameterName}),
-                CallingConvention.ThisCall => new {ImplementationClass.ClassName}_{nameof(CallingConvention.ThisCall)}({method.FirstParameterName}),
-                CallingConvention.Winapi => new {ImplementationClass.ClassName}_{nameof(CallingConvention.Winapi)}({method.FirstParameterName}),
+                CallingConvention.Cdecl => ({method.ContainingInterface.FullName})new " +
+                    $@"{ImplementationClass.ClassName}_{nameof(CallingConvention.Cdecl)}({firstArg}),
+                CallingConvention.StdCall => new {ImplementationClass.ClassName}_{nameof(CallingConvention.StdCall)}" +
+                    $@"({firstArg}),
+                CallingConvention.ThisCall => new {ImplementationClass.ClassName}_" +
+                    $@"{nameof(CallingConvention.ThisCall)}({firstArg}),
+                CallingConvention.Winapi => new {ImplementationClass.ClassName}_{nameof(CallingConvention.Winapi)}" +
+                    $@"({firstArg}),
                 _ => throw new NotImplementedException()
             }};
         }}"

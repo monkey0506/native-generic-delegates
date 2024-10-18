@@ -209,13 +209,18 @@ namespace Monkeymoto.NativeGenericDelegates
         public static readonly string[] InterceptorTypeConstraints =
         [
             .. AntiConstraints.Select(static x => x.Replace("    where T", "        where X").Replace('T', 'X')),
-            $"{AntiConstraint_T1_T16.Replace("    where T", "        where X")
-                .Replace('T', 'X')}{NewLineIndent3}where X17 : allows ref struct"
+            $"{AntiConstraint_T1_T16.Replace("    where T", "        where X").Replace('T', 'X')}{NewLineIndent3}" +
+                "where X17 : allows ref struct"
         ];
 
         public static readonly string[] InterceptorUnmanagedTypeConstraints =
         [
-            .. InterceptorTypeConstraints.Select(static x => $"{x.Replace("X", "XT")}{x.Replace("X", "XU").Replace(": allows", ": unmanaged, allows")}")
+            .. InterceptorTypeConstraints
+                .Select
+                (
+                    static x =>
+                        $"{x.Replace("X", "XT")}{x.Replace("X", "XU").Replace(": allows", ": unmanaged, allows")}"
+                )
         ];
 
         public static readonly string[] InterceptorTypeParameters =
@@ -226,7 +231,8 @@ namespace Monkeymoto.NativeGenericDelegates
 
         public static readonly string[] InterceptorUnmanagedTypeParameters =
         [
-            .. InterceptorTypeParameters.Select(static x => $"{x.Replace("X", "XT")}, {x.Replace("X", "XU")}")
+            string.Empty,
+            .. InterceptorTypeParameters.Skip(1).Select(static x => $"{x.Replace("X", "XT")}, {x.Replace("X", "XU")}")
         ];
 
         private static readonly string[] QualifiedTypeParameters =

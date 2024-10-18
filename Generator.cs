@@ -59,17 +59,17 @@ namespace {Constants.RootNamespace}
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
                 CallingConvention.StdCall :
                 CallingConvention.Cdecl;
-    }}"
+    }}
+    "
                     );
                     foreach (var implementationClass in implementationClasses)
                     {
                         _ = sb.Append(Constants.NewLineIndent1).Append(implementationClass.SourceText);
                     }
-                    _ = sb.AppendLine(implementationClasses.GetOpenGenericInterceptorsSourceText());
-                    int i = sb.Length - 1;
-                    for ( ; (i >= 0) && char.IsWhiteSpace(sb[i]); --i) { }
-                    sb.Length = i + 1;
-                    _ = sb.AppendLine().AppendLine("}");
+                    _ = sb.AppendLine(implementationClasses.GetOpenGenericInterceptorsSourceText())
+                        .TrimEnd()
+                        .AppendLine()
+                        .AppendLine("}");
                     context.AddSource(Constants.SourceFileName, sb.ToString());
                 }
             );
