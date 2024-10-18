@@ -32,7 +32,7 @@ namespace Monkeymoto.NativeGenericDelegates
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             context.RegisterPostInitializationOutput(static context =>
-                context.AddSource(Constants.DeclarationsSourceFileName, PostInitialization.GetSourceText()));
+                context.AddSource(Constants.DeclarationsSourceFileName, Declarations.GetSourceText()));
             var interfaceOrMethodSymbols = InterfaceOrMethodSymbolCollection.GetSymbols(context.CompilationProvider);
             var interfaceReferences = InterfaceReferenceCollection.GetReferences(context, interfaceOrMethodSymbols);
             var methodReferences = MethodReferenceCollection.GetReferences(interfaceReferences);

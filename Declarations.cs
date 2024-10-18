@@ -2,7 +2,7 @@
 
 namespace Monkeymoto.NativeGenericDelegates
 {
-    internal static class PostInitialization
+    internal static class Declarations
     {
         private static void BuildBaseInterfaceDefinition(StringBuilder sb, bool isAction, int argumentCount)
         {
