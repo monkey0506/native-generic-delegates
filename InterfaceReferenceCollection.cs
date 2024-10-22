@@ -1,4 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Monkeymoto.GeneratorUtils;
 using System;
 using System.Collections;
@@ -28,12 +30,30 @@ namespace Monkeymoto.NativeGenericDelegates
             IncrementalValueProvider<InterfaceOrMethodSymbolCollection> symbolsProvider
         )
         {
+            var nonGenericInterfaceReferenceProvider = context.SyntaxProvider.CreateSyntaxProvider
+            (
+                (node, _) =>
+                {
+                    if ((node is not MemberAccessExpressionSyntax memberAccessExpression) ||
+                        (memberAccessExpression.Expression is not IdentifierNameSyntax identifierName) ||
+                        (node.Parent is not InvocationExpressionSyntax))
+                    {
+                        return false;
+                    }
+                    string memberName = memberAccessExpression.Name.Identifier.ValueText;
+                    string parentName = identifierName.Identifier.ValueText;
+                    return ((memberName == "FromAction") || (memberName == "FromFunctionPointer")) &&
+                        ((parentName == "INativeAction") || (parentName == "IUnmanagedAction"));
+                },
+                (context, cancellationToken) => (IInvocationOperation)context.SemanticModel
+                    .GetOperation(context.Node.Parent!, cancellationToken)!
+            ).Collect();
             var treeProvider = GenericSymbolReferenceTree.FromIncrementalGeneratorInitializationContext(context);
-            return symbolsProvider.Combine(treeProvider).Select
+            return symbolsProvider.Combine(nonGenericInterfaceReferenceProvider).Combine(treeProvider).Select
             (
                 static (x, cancellationToken) =>
                 {
-                    var symbols = x.Left;
+                    var (symbols, nonGenericInterfaceReferences) = x.Left;
                     using var tree = x.Right; // Dispose tree after we extract the symbol references we need
                     var interfaceReferences = ImmutableHashSet.CreateBuilder<InterfaceReference>();
                     var methodReferences = ImmutableHashSet.CreateBuilder<GenericSymbolReference>();
@@ -41,7 +61,7 @@ namespace Monkeymoto.NativeGenericDelegates
                     {
                         switch (symbol)
                         {
-                            case INamedTypeSymbol:
+                            case INamedTypeSymbol { IsGenericType: true }:
                                 interfaceReferences.UnionWith
                                 (
                                     tree.GetBranchesBySymbol(symbol, cancellationToken)
@@ -49,12 +69,23 @@ namespace Monkeymoto.NativeGenericDelegates
                                         .Where(static x => x is not null)!
                                 );
                                 break;
+                            case INamedTypeSymbol { IsGenericType: false }:
+                                break;
                             case IMethodSymbol methodSymbol:
                                 methodReferences.UnionWith(tree.GetBranchesBySymbol(symbol, cancellationToken));
                                 break;
                             default:
                                 throw new UnreachableException();
                         }
+                    }
+                    foreach
+                    (
+                        var reference in nonGenericInterfaceReferences
+                            .Select(static x => InterfaceReference.GetReference(x))
+                            .Where(static x => x is not null)
+                    )
+                    {
+                        _ = interfaceReferences.Add(reference!);
                     }
                     return new InterfaceReferenceCollection
                     (

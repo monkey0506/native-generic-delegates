@@ -51,6 +51,17 @@ namespace Monkeymoto.NativeGenericDelegates
             return null;
         }
 
+        public static InterfaceReference? GetReference(IInvocationOperation invocation)
+        {
+            if ((invocation is null) || invocation.TargetMethod.IsGenericMethod ||
+                (invocation.TargetMethod.ContainingType is not INamedTypeSymbol interfaceSymbol) ||
+                interfaceSymbol.IsGenericType)
+            {
+                return null;
+            }
+            return new InterfaceReference(interfaceSymbol, invocation, false);
+        }
+
         private InterfaceReference
         (
             INamedTypeSymbol interfaceSymbol,
