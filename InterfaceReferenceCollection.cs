@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Monkeymoto.GeneratorUtils;
 using System;
 using System.Collections;
@@ -12,10 +13,10 @@ namespace Monkeymoto.NativeGenericDelegates
 {
     internal readonly struct InterfaceReferenceCollection :
         IEquatable<InterfaceReferenceCollection>,
-        IEnumerable<GenericSymbolReference>
+        IEnumerable<InterfaceReference>
     {
         private readonly int hashCode;
-        private readonly ImmutableHashSet<GenericSymbolReference> interfaceReferences;
+        private readonly ImmutableHashSet<InterfaceReference> interfaceReferences;
         private readonly ImmutableHashSet<GenericSymbolReference> methodReferences;
 
         public static bool operator ==(InterfaceReferenceCollection left, InterfaceReferenceCollection right) =>
@@ -29,38 +30,75 @@ namespace Monkeymoto.NativeGenericDelegates
             IncrementalValueProvider<InterfaceOrMethodSymbolCollection> symbolsProvider
         )
         {
-            var treeProvider = GenericSymbolReferenceTree.FromIncrementalGeneratorInitializationContext(context);
-            return symbolsProvider.Combine(treeProvider).Select(static (x, cancellationToken) =>
-            {
-                var symbols = x.Left;
-                using var tree = x.Right; // Dispose tree after we extract the symbol references we need
-                var interfaceReferences = ImmutableHashSet.CreateBuilder<GenericSymbolReference>();
-                var methodReferences = ImmutableHashSet.CreateBuilder<GenericSymbolReference>();
-                foreach (var symbol in symbols)
+            var nonGenericInterfaceReferenceProvider = context.SyntaxProvider.CreateSyntaxProvider
+            (
+                (node, _) =>
                 {
-                    switch (symbol)
+                    if ((node is not MemberAccessExpressionSyntax memberAccessExpression) ||
+                        (memberAccessExpression.Expression is not IdentifierNameSyntax identifierName) ||
+                        (node.Parent is not InvocationExpressionSyntax))
                     {
-                        case INamedTypeSymbol:
-                            interfaceReferences.UnionWith(tree.GetBranchesBySymbol(symbol, cancellationToken));
-                            break;
-                        case IMethodSymbol methodSymbol:
-                            methodReferences.UnionWith(tree.GetBranchesBySymbol(symbol, cancellationToken));
-                            break;
-                        default:
-                            throw new UnreachableException();
+                        return false;
                     }
+                    string memberName = memberAccessExpression.Name.Identifier.ValueText;
+                    string parentName = identifierName.Identifier.ValueText;
+                    return ((memberName == "FromAction") || (memberName == "FromFunctionPointer")) &&
+                        ((parentName == "INativeAction") || (parentName == "IUnmanagedAction"));
+                },
+                (context, cancellationToken) => (IInvocationOperation)context.SemanticModel
+                    .GetOperation(context.Node.Parent!, cancellationToken)!
+            ).Collect();
+            var treeProvider = GenericSymbolReferenceTree.FromIncrementalGeneratorInitializationContext(context);
+            return symbolsProvider.Combine(nonGenericInterfaceReferenceProvider).Combine(treeProvider).Select
+            (
+                static (x, cancellationToken) =>
+                {
+                    var (symbols, nonGenericInterfaceReferences) = x.Left;
+                    using var tree = x.Right; // Dispose tree after we extract the symbol references we need
+                    var interfaceReferences = ImmutableHashSet.CreateBuilder<InterfaceReference>();
+                    var methodReferences = ImmutableHashSet.CreateBuilder<GenericSymbolReference>();
+                    foreach (var symbol in symbols)
+                    {
+                        switch (symbol)
+                        {
+                            case INamedTypeSymbol { IsGenericType: true }:
+                                interfaceReferences.UnionWith
+                                (
+                                    tree.GetBranchesBySymbol(symbol, cancellationToken)
+                                        .Select(x => InterfaceReference.GetReference(x, cancellationToken))
+                                        .Where(static x => x is not null)!
+                                );
+                                break;
+                            case INamedTypeSymbol { IsGenericType: false }:
+                                break;
+                            case IMethodSymbol methodSymbol:
+                                methodReferences.UnionWith(tree.GetBranchesBySymbol(symbol, cancellationToken));
+                                break;
+                            default:
+                                throw new UnreachableException();
+                        }
+                    }
+                    foreach
+                    (
+                        var reference in nonGenericInterfaceReferences
+                            .Select(static x => InterfaceReference.GetReference(x))
+                            .Where(static x => x is not null)
+                    )
+                    {
+                        _ = interfaceReferences.Add(reference!);
+                    }
+                    return new InterfaceReferenceCollection
+                    (
+                        interfaceReferences.ToImmutable(),
+                        methodReferences.ToImmutable()
+                    );
                 }
-                return new InterfaceReferenceCollection
-                (
-                    interfaceReferences.ToImmutable(),
-                    methodReferences.ToImmutable()
-                );
-            });
+            );
         }
 
         private InterfaceReferenceCollection
         (
-            ImmutableHashSet<GenericSymbolReference> interfaceReferences,
+            ImmutableHashSet<InterfaceReference> interfaceReferences,
             ImmutableHashSet<GenericSymbolReference> methodReferences
         )
         {
@@ -73,21 +111,21 @@ namespace Monkeymoto.NativeGenericDelegates
         public bool Equals(InterfaceReferenceCollection other) =>
             interfaceReferences.SetEquals(other.interfaceReferences) &&
             methodReferences.SetEquals(other.methodReferences);
-        public IEnumerator<GenericSymbolReference> GetEnumerator() => interfaceReferences.GetEnumerator();
+        public IEnumerator<InterfaceReference> GetEnumerator() => interfaceReferences.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         public override int GetHashCode() => hashCode;
 
         public IReadOnlyCollection<GenericSymbolReference> GetGenericMethodReferences
         (
-            IMethodSymbol methodSymbol,
-            InvocationExpressionSyntax invocationExpression
+            InterfaceReference interfaceReference
         )
         {
-            methodSymbol = methodSymbol.OriginalDefinition;
+            var methodSymbol = interfaceReference.MethodInvocation.TargetMethod.OriginalDefinition;
+            var node = interfaceReference.MethodInvocation.Syntax;
             return methodReferences.Where
             (
                 x => SymbolEqualityComparer.Default.Equals(x.Symbol.OriginalDefinition, methodSymbol) &&
-                    x.Node.IsEquivalentTo(invocationExpression)
+                    x.Node.IsEquivalentTo(node)
             ).ToImmutableList();
         }
     }

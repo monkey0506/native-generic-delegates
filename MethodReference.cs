@@ -1,11 +1,11 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
 using Monkeymoto.GeneratorUtils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 
 namespace Monkeymoto.NativeGenericDelegates
@@ -25,86 +25,58 @@ namespace Monkeymoto.NativeGenericDelegates
             left?.Equals(right) ?? right is null;
         public static bool operator !=(MethodReference? left, MethodReference? right) => !(left == right);
 
+        private static MethodReference GetReference
+        (
+            InterfaceReference interfaceReference,
+            CancellationToken cancellationToken,
+            INamedTypeSymbol? marshaller = null
+        )
+        {
+            var marshalInfo = MarshalInfo.GetMarshalInfo(interfaceReference, marshaller, cancellationToken);
+            return new MethodReference(interfaceReference, marshalInfo);
+        }
+
         public static IReadOnlyList<MethodReference>? GetReferences
         (
-            GenericSymbolReference interfaceReference,
-            Func<IMethodSymbol, InvocationExpressionSyntax, IReadOnlyCollection<GenericSymbolReference>>
-                getGenericMethodReferences,
+            InterfaceReference interfaceReference,
+            Func<InterfaceReference, IReadOnlyCollection<GenericSymbolReference>> getGenericMethodReferences,
             CancellationToken cancellationToken
         )
         {
-            var node = interfaceReference.Node;
-            var invocationExpression = node.Parent?.Parent as InvocationExpressionSyntax;
-            if (invocationExpression is null)
-            {
-                return null;
-            }
-            var semanticModel = interfaceReference.SemanticModel!;
-            var operation = semanticModel.GetOperation(invocationExpression, cancellationToken);
-            if (operation is not IInvocationOperation invocation)
-            {
-                return null;
-            }
+            var invocation = interfaceReference.MethodInvocation;
+            var invocationExpression = (InvocationExpressionSyntax)invocation.Syntax;
             var methodSymbol = invocation.TargetMethod;
             var marshallers = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
-            var isOpenGenericMethod = false;
             if (methodSymbol.IsGenericMethod)
             {
-                if (methodSymbol.TypeArguments.First() is INamedTypeSymbol namedMarshaller)
+                if (methodSymbol.TypeArguments[0] is INamedTypeSymbol namedMarshaller)
                 {
                     marshallers.Add(namedMarshaller);
                 }
                 else
                 {
-                    isOpenGenericMethod = true;
                     foreach
                     (
-                        var marshaller in getGenericMethodReferences(methodSymbol, invocationExpression)
-                            .Select(static x => (INamedTypeSymbol)x.TypeArguments.First())
+                        var marshaller in getGenericMethodReferences(interfaceReference)
+                            .Select(static x => (INamedTypeSymbol)x.TypeArguments[0])
                     )
                     {
                         marshallers.Add(marshaller);
                     }
                 }
             }
-            var invocationArgumentCount = invocation.Arguments.Length -
-                invocation.Arguments.Where(static x => x.ArgumentKind != ArgumentKind.Explicit).Count();
-            var interfaceSymbol = (INamedTypeSymbol)interfaceReference.Symbol;
-            var interfaceDescriptor = new InterfaceDescriptor(interfaceSymbol);
-            var methodDescriptor = new MethodDescriptor(interfaceDescriptor, methodSymbol!);
+            var interfaceDescriptor = interfaceReference.Interface;
+            var methodDescriptor = interfaceReference.Method;
             var methodReferences = ImmutableList.CreateBuilder<MethodReference>();
-
-            MethodReference GetReference(INamedTypeSymbol? marshaller)
-            {
-                var marshalInfo = MarshalInfo.GetMarshalInfo
-                (
-                    marshaller,
-                    interfaceDescriptor,
-                    methodDescriptor,
-                    invocationExpression,
-                    semanticModel,
-                    cancellationToken
-                );
-                return new MethodReference
-                (
-                    interfaceDescriptor,
-                    methodDescriptor,
-                    invocationExpression,
-                    marshalInfo,
-                    !interfaceReference.IsSyntaxReferenceClosedTypeOrMethod || isOpenGenericMethod,
-                    invocationArgumentCount
-                );
-            }
-
             if (marshallers.Count == 0)
             {
-                methodReferences.Add(GetReference(null));
+                methodReferences.Add(GetReference(interfaceReference, cancellationToken));
             }
             else
             {
                 foreach (var marshaller in marshallers)
                 {
-                    methodReferences.Add(GetReference(marshaller));
+                    methodReferences.Add(GetReference(interfaceReference, cancellationToken, marshaller));
                 }
             }
             return methodReferences.ToImmutable();
@@ -112,20 +84,17 @@ namespace Monkeymoto.NativeGenericDelegates
 
         private MethodReference
         (
-            InterfaceDescriptor interfaceDescriptor,
-            MethodDescriptor methodDescriptor,
-            InvocationExpressionSyntax invocationExpression,
-            MarshalInfo marshalInfo,
-            bool isInterfaceOrMethodOpenGeneric,
-            int invocationArgumentCount
+            InterfaceReference interfaceReference,
+            MarshalInfo marshalInfo
         )
         {
-            Interface = interfaceDescriptor;
-            InvocationArgumentCount = invocationArgumentCount;
-            IsInterfaceOrMethodOpenGeneric = isInterfaceOrMethodOpenGeneric;
+            var invocationExpression = (InvocationExpressionSyntax)interfaceReference.MethodInvocation.Syntax;
+            Interface = interfaceReference.Interface;
+            InvocationArgumentCount = interfaceReference.InvocationArgumentCount;
+            IsInterfaceOrMethodOpenGeneric = interfaceReference.IsInterfaceOrMethodOpenGeneric;
             Location = new InterceptedLocation(invocationExpression);
             MarshalInfo = marshalInfo;
-            Method = methodDescriptor;
+            Method = interfaceReference.Method;
             hashCode = Hash.Combine(Location, Method, InvocationArgumentCount, MarshalInfo);
         }
 
