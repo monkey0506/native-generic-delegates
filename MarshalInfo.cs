@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using System;
 using System.Collections.Generic;
@@ -25,17 +24,14 @@ namespace Monkeymoto.NativeGenericDelegates
 
         private static IFieldReferenceOperation? GetCallingConventionOperation
         (
-            InvocationExpressionSyntax invocationExpression,
-            SemanticModel semanticModel,
+            IInvocationOperation invocation,
             CancellationToken cancellationToken,
             IPropertySymbol? property = null,
             Compilation? compilation = null
         )
         {
-            var callingConventionArg = invocationExpression.ArgumentList.Arguments
-                .Select(x => semanticModel.GetOperation(x, cancellationToken) as IArgumentOperation)
-                .Where(static x => (x is not null) && (x.Parameter!.Name == "callingConvention"))
-                .FirstOrDefault();
+            var callingConventionArg = invocation.Arguments.Where(static x => x.Parameter?.Name == "callingConvention")
+                .SingleOrDefault();
             return callingConventionArg is not null ?
                 callingConventionArg.Value as IFieldReferenceOperation :
                 GetFieldReferenceOperation(property, compilation, cancellationToken);
@@ -50,19 +46,19 @@ namespace Monkeymoto.NativeGenericDelegates
 
         public static MarshalInfo GetMarshalInfo
         (
+            InterfaceReference interfaceReference,
             INamedTypeSymbol? marshaller,
-            InterfaceDescriptor interfaceDescriptor,
-            MethodDescriptor methodDescriptor,
-            InvocationExpressionSyntax invocationExpression,
-            SemanticModel semanticModel,
             CancellationToken cancellationToken
         )
         {
+            var interfaceDescriptor = interfaceReference.Interface;
+            var methodDescriptor = interfaceReference.Method;
+            var invocation = interfaceReference.MethodInvocation;
             if (marshaller is null)
             {
-                return new(methodDescriptor, invocationExpression, semanticModel, cancellationToken);
+                return new(methodDescriptor, invocation, cancellationToken);
             }
-            var compilation = semanticModel.Compilation;
+            var compilation = invocation.SemanticModel!.Compilation;
             var marshallerInterface = compilation.GetTypeByMetadataName(Constants.IMarshallerMetadataName)!;
             var properties = marshaller.GetMembers()
                 .OfType<IPropertySymbol>()
@@ -102,8 +98,7 @@ namespace Monkeymoto.NativeGenericDelegates
             }
             var callingConventionOp = GetCallingConventionOperation
             (
-                invocationExpression,
-                semanticModel,
+                invocation,
                 cancellationToken,
                 callingConventionProperty,
                 compilation
@@ -182,17 +177,13 @@ namespace Monkeymoto.NativeGenericDelegates
         private MarshalInfo
         (
             MethodDescriptor methodDescriptor,
-            InvocationExpressionSyntax invocationExpression,
-            SemanticModel semanticModel,
+            IInvocationOperation invocation,
             CancellationToken cancellationToken
         )
         {
             StaticCallingConvention = methodDescriptor.IsFromUnsafeFunctionPointer ?
                 GetUnsafeStaticCallingConvention(methodDescriptor) :
-                GetStaticCallingConvention
-                (
-                    GetCallingConventionOperation(invocationExpression, semanticModel, cancellationToken)
-                );
+                GetStaticCallingConvention(GetCallingConventionOperation(invocation, cancellationToken));
             hashCode = Hash.Combine
             (
                 MarshallerType,
