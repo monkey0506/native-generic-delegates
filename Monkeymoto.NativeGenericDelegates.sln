@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Monkeymoto.NativeGenericDelegates", "Monkeymoto.NativeGenericDelegates.csproj", "{24D27C14-4040-4052-AA17-8CC53ECCD25E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monkeymoto.NativeGenericDelegates.Tests", "Monkeymoto.NativeGenericDelegates.Tests\Monkeymoto.NativeGenericDelegates.Tests.csproj", "{745009A6-0E11-4D9E-B133-3AC8A10DFD9D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{24D27C14-4040-4052-AA17-8CC53ECCD25E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{24D27C14-4040-4052-AA17-8CC53ECCD25E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{24D27C14-4040-4052-AA17-8CC53ECCD25E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{745009A6-0E11-4D9E-B133-3AC8A10DFD9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{745009A6-0E11-4D9E-B133-3AC8A10DFD9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{745009A6-0E11-4D9E-B133-3AC8A10DFD9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{745009A6-0E11-4D9E-B133-3AC8A10DFD9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
