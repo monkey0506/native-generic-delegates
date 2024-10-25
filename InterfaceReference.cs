@@ -30,25 +30,18 @@ namespace Monkeymoto.NativeGenericDelegates
         )
         {
             if ((reference.Node.Parent?.Parent is not InvocationExpressionSyntax invocationExpression) ||
-                (reference.Symbol is not INamedTypeSymbol interfaceSymbol))
+                (reference.Symbol is not INamedTypeSymbol interfaceSymbol) ||
+                (reference.SemanticModel.GetOperation(invocationExpression, cancellationToken) is not
+                    IInvocationOperation methodInvocation))
             {
                 return null;
             }
-            var semanticModel = reference.SemanticModel!;
-            var methodInvocation = semanticModel
-                .GetOperation(invocationExpression, cancellationToken) as IInvocationOperation;
-            if (methodInvocation is not null)
-            {
-                var isInterfaceOrMethodOpenGeneric = !reference.IsSyntaxReferenceClosedTypeOrMethod ||
-                    methodInvocation.TargetMethod.TypeArguments.Any(static x => x is not INamedTypeSymbol);
-                return new InterfaceReference
-                (
-                    interfaceSymbol,
-                    methodInvocation,
-                    isInterfaceOrMethodOpenGeneric
-                );
-            }
-            return null;
+            return new InterfaceReference
+            (
+                interfaceSymbol,
+                methodInvocation,
+                !reference.IsSyntaxReferenceClosedTypeOrMethod
+            );
         }
 
         public static InterfaceReference? GetReference(IInvocationOperation invocation)
