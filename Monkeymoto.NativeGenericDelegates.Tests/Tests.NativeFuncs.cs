@@ -373,19 +373,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_5_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
         }
 
         [TestMethod]
         public void Test_INativeFunc_5_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
         }
 
         [TestMethod]
         public void Test_INativeFunc_5_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
         }
 
         [TestMethod]
@@ -409,19 +409,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_6_int_FromFunctionPointer()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc6));
         }
 
         [TestMethod]
         public void Test_INativeFunc_6_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc6));
         }
 
         [TestMethod]
         public void Test_INativeFunc_6_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc6));
         }
 
         [TestMethod]
@@ -445,19 +445,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_6_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc6));
         }
 
         [TestMethod]
         public void Test_INativeFunc_6_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc6));
         }
 
         [TestMethod]
         public void Test_INativeFunc_6_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc6));
         }
 
         [TestMethod]
@@ -481,19 +481,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_7_int_FromFunctionPointer()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc7));
         }
 
         [TestMethod]
         public void Test_INativeFunc_7_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc7));
         }
 
         [TestMethod]
         public void Test_INativeFunc_7_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc7));
         }
 
         [TestMethod]
@@ -517,19 +517,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_7_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc7));
         }
 
         [TestMethod]
         public void Test_INativeFunc_7_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc7));
         }
 
         [TestMethod]
         public void Test_INativeFunc_7_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc7));
         }
 
         [TestMethod]
@@ -553,19 +553,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_8_int_FromFunctionPointer()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc8));
         }
 
         [TestMethod]
         public void Test_INativeFunc_8_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc8));
         }
 
         [TestMethod]
         public void Test_INativeFunc_8_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc8));
         }
 
         [TestMethod]
@@ -589,19 +589,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_8_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc8));
         }
 
         [TestMethod]
         public void Test_INativeFunc_8_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc8));
         }
 
         [TestMethod]
         public void Test_INativeFunc_8_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc8));
         }
 
         [TestMethod]
@@ -625,19 +625,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_9_int_FromFunctionPointer()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc9));
         }
 
         [TestMethod]
         public void Test_INativeFunc_9_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc9));
         }
 
         [TestMethod]
         public void Test_INativeFunc_9_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc9));
         }
 
         [TestMethod]
@@ -661,19 +661,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_9_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc9));
         }
 
         [TestMethod]
         public void Test_INativeFunc_9_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc9));
         }
 
         [TestMethod]
         public void Test_INativeFunc_9_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc9));
         }
 
         [TestMethod]
@@ -697,19 +697,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_10_int_FromFunctionPointer()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc10));
         }
 
         [TestMethod]
         public void Test_INativeFunc_10_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc10));
         }
 
         [TestMethod]
         public void Test_INativeFunc_10_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc10));
         }
 
         [TestMethod]
@@ -733,19 +733,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_10_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc10));
         }
 
         [TestMethod]
         public void Test_INativeFunc_10_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc10));
         }
 
         [TestMethod]
         public void Test_INativeFunc_10_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc10));
         }
 
         [TestMethod]
@@ -769,19 +769,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_11_int_FromFunctionPointer()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc11));
         }
 
         [TestMethod]
         public void Test_INativeFunc_11_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc11));
         }
 
         [TestMethod]
         public void Test_INativeFunc_11_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc11));
         }
 
         [TestMethod]
@@ -805,19 +805,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_11_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc11));
         }
 
         [TestMethod]
         public void Test_INativeFunc_11_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc11));
         }
 
         [TestMethod]
         public void Test_INativeFunc_11_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc11));
         }
 
         [TestMethod]
@@ -841,19 +841,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_12_int_FromFunctionPointer()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc12));
         }
 
         [TestMethod]
         public void Test_INativeFunc_12_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc12));
         }
 
         [TestMethod]
         public void Test_INativeFunc_12_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc12));
         }
 
         [TestMethod]
@@ -877,19 +877,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_12_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc12));
         }
 
         [TestMethod]
         public void Test_INativeFunc_12_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc12));
         }
 
         [TestMethod]
         public void Test_INativeFunc_12_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc12));
         }
 
         [TestMethod]
@@ -913,19 +913,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_13_int_FromFunctionPointer()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc13));
         }
 
         [TestMethod]
         public void Test_INativeFunc_13_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc13));
         }
 
         [TestMethod]
         public void Test_INativeFunc_13_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc13));
         }
 
         [TestMethod]
@@ -949,19 +949,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_13_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc13));
         }
 
         [TestMethod]
         public void Test_INativeFunc_13_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc13));
         }
 
         [TestMethod]
         public void Test_INativeFunc_13_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc13));
         }
 
         [TestMethod]
@@ -985,19 +985,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_14_int_FromFunctionPointer()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc14));
         }
 
         [TestMethod]
         public void Test_INativeFunc_14_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc14));
         }
 
         [TestMethod]
         public void Test_INativeFunc_14_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc14));
         }
 
         [TestMethod]
@@ -1021,19 +1021,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_14_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc14));
         }
 
         [TestMethod]
         public void Test_INativeFunc_14_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc14));
         }
 
         [TestMethod]
         public void Test_INativeFunc_14_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc14));
         }
 
         [TestMethod]
@@ -1057,19 +1057,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_15_int_FromFunctionPointer()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc15));
         }
 
         [TestMethod]
         public void Test_INativeFunc_15_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc15));
         }
 
         [TestMethod]
         public void Test_INativeFunc_15_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc15));
         }
 
         [TestMethod]
@@ -1093,19 +1093,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_15_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc15));
         }
 
         [TestMethod]
         public void Test_INativeFunc_15_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc15));
         }
 
         [TestMethod]
         public void Test_INativeFunc_15_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc15));
         }
 
         [TestMethod]
@@ -1129,19 +1129,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_16_int_FromFunctionPointer()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc16));
         }
 
         [TestMethod]
         public void Test_INativeFunc_16_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc16));
         }
 
         [TestMethod]
         public void Test_INativeFunc_16_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc5));
+            _ = INativeFunc<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc16));
         }
 
         [TestMethod]
@@ -1165,19 +1165,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeFunc_16_string_FromFunctionPointer()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc16));
         }
 
         [TestMethod]
         public void Test_INativeFunc_16_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc16));
         }
 
         [TestMethod]
         public void Test_INativeFunc_16_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc4));
+            _ = INativeFunc<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedFunc16));
         }
     }
 }

@@ -362,19 +362,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_5_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
         }
 
         [TestMethod]
         public void Test_INativeAction_5_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
         }
 
         [TestMethod]
         public void Test_INativeAction_5_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
         }
 
         [TestMethod]
@@ -398,19 +398,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_6_int_FromFunctionPointer()
         {
-            _ = INativeAction<int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction6));
         }
 
         [TestMethod]
         public void Test_INativeAction_6_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction6));
         }
 
         [TestMethod]
         public void Test_INativeAction_6_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction6));
         }
 
         [TestMethod]
@@ -434,19 +434,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_6_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction6));
         }
 
         [TestMethod]
         public void Test_INativeAction_6_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction6));
         }
 
         [TestMethod]
         public void Test_INativeAction_6_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction6));
         }
 
         [TestMethod]
@@ -470,19 +470,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_7_int_FromFunctionPointer()
         {
-            _ = INativeAction<int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction7));
         }
 
         [TestMethod]
         public void Test_INativeAction_7_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction7));
         }
 
         [TestMethod]
         public void Test_INativeAction_7_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction7));
         }
 
         [TestMethod]
@@ -506,19 +506,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_7_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction7));
         }
 
         [TestMethod]
         public void Test_INativeAction_7_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction7));
         }
 
         [TestMethod]
         public void Test_INativeAction_7_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction7));
         }
 
         [TestMethod]
@@ -542,19 +542,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_8_int_FromFunctionPointer()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction8));
         }
 
         [TestMethod]
         public void Test_INativeAction_8_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction8));
         }
 
         [TestMethod]
         public void Test_INativeAction_8_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction8));
         }
 
         [TestMethod]
@@ -578,19 +578,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_8_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction8));
         }
 
         [TestMethod]
         public void Test_INativeAction_8_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction8));
         }
 
         [TestMethod]
         public void Test_INativeAction_8_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction8));
         }
 
         [TestMethod]
@@ -614,19 +614,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_9_int_FromFunctionPointer()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction9));
         }
 
         [TestMethod]
         public void Test_INativeAction_9_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction9));
         }
 
         [TestMethod]
         public void Test_INativeAction_9_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction9));
         }
 
         [TestMethod]
@@ -650,19 +650,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_9_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction9));
         }
 
         [TestMethod]
         public void Test_INativeAction_9_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction9));
         }
 
         [TestMethod]
         public void Test_INativeAction_9_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction9));
         }
 
         [TestMethod]
@@ -686,19 +686,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_10_int_FromFunctionPointer()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction10));
         }
 
         [TestMethod]
         public void Test_INativeAction_10_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction10));
         }
 
         [TestMethod]
         public void Test_INativeAction_10_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction10));
         }
 
         [TestMethod]
@@ -722,19 +722,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_10_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction10));
         }
 
         [TestMethod]
         public void Test_INativeAction_10_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction10));
         }
 
         [TestMethod]
         public void Test_INativeAction_10_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction10));
         }
 
         [TestMethod]
@@ -758,19 +758,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_11_int_FromFunctionPointer()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction11));
         }
 
         [TestMethod]
         public void Test_INativeAction_11_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction11));
         }
 
         [TestMethod]
         public void Test_INativeAction_11_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction11));
         }
 
         [TestMethod]
@@ -794,19 +794,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_11_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction11));
         }
 
         [TestMethod]
         public void Test_INativeAction_11_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction11));
         }
 
         [TestMethod]
         public void Test_INativeAction_11_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction11));
         }
 
         [TestMethod]
@@ -830,19 +830,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_12_int_FromFunctionPointer()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction12));
         }
 
         [TestMethod]
         public void Test_INativeAction_12_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction12));
         }
 
         [TestMethod]
         public void Test_INativeAction_12_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction12));
         }
 
         [TestMethod]
@@ -866,19 +866,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_12_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction12));
         }
 
         [TestMethod]
         public void Test_INativeAction_12_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction12));
         }
 
         [TestMethod]
         public void Test_INativeAction_12_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction12));
         }
 
         [TestMethod]
@@ -902,19 +902,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_13_int_FromFunctionPointer()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction13));
         }
 
         [TestMethod]
         public void Test_INativeAction_13_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction13));
         }
 
         [TestMethod]
         public void Test_INativeAction_13_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction13));
         }
 
         [TestMethod]
@@ -938,19 +938,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_13_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction13));
         }
 
         [TestMethod]
         public void Test_INativeAction_13_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction13));
         }
 
         [TestMethod]
         public void Test_INativeAction_13_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction13));
         }
 
         [TestMethod]
@@ -974,19 +974,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_14_int_FromFunctionPointer()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction14));
         }
 
         [TestMethod]
         public void Test_INativeAction_14_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction14));
         }
 
         [TestMethod]
         public void Test_INativeAction_14_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction14));
         }
 
         [TestMethod]
@@ -1010,19 +1010,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_14_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction14));
         }
 
         [TestMethod]
         public void Test_INativeAction_14_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction14));
         }
 
         [TestMethod]
         public void Test_INativeAction_14_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction14));
         }
 
         [TestMethod]
@@ -1046,19 +1046,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_15_int_FromFunctionPointer()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction15));
         }
 
         [TestMethod]
         public void Test_INativeAction_15_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction15));
         }
 
         [TestMethod]
         public void Test_INativeAction_15_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction15));
         }
 
         [TestMethod]
@@ -1082,19 +1082,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_15_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction15));
         }
 
         [TestMethod]
         public void Test_INativeAction_15_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction15));
         }
 
         [TestMethod]
         public void Test_INativeAction_15_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction15));
         }
 
         [TestMethod]
@@ -1118,19 +1118,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_16_int_FromFunctionPointer()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction16));
         }
 
         [TestMethod]
         public void Test_INativeAction_16_int_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction16));
         }
 
         [TestMethod]
         public void Test_INativeAction_16_int_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction5));
+            _ = INativeAction<int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction16));
         }
 
         [TestMethod]
@@ -1154,19 +1154,19 @@ namespace Monkeymoto.NativeGenericDelegates.Tests
         [TestMethod]
         public void Test_INativeAction_16_string_FromFunctionPointer()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction16));
         }
 
         [TestMethod]
         public void Test_INativeAction_16_string_FromFunctionPointer_DefaultMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<DefaultMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction16));
         }
 
         [TestMethod]
         public void Test_INativeAction_16_string_FromFunctionPointer_CdeclMarshaller()
         {
-            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction4));
+            _ = INativeAction<string, string, string, string, string, string, string, string, string, string, string, string, string, string, string, string>.FromFunctionPointer<CdeclMarshaller>(Stubs.ToPointer(&Stubs.Stub_UnmanagedAction16));
         }
     }
 }
