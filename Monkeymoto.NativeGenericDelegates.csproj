@@ -18,7 +18,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Monkeymoto.GeneratorUtils.GenericSymbolReferenceTree" Version="2.0.1">
+    <PackageReference Include="Monkeymoto.GeneratorUtils.GenericSymbolReferenceTree" Version="3.0.0">
       <PrivateAssets>all</PrivateAssets>
       <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
